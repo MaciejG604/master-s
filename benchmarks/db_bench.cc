@@ -45,44 +45,40 @@
 //      sstables    -- Print sstable info
 //      heapprofile -- Dump a heap profile (if supported by this port)
 static const char* FLAGS_benchmarks =
-    "fillseq,"
-    "fillsync,"
     "fillrandom,"
     "overwrite,"
-    "readrandom,"
-    "readrandom,"  // Extra run to allow previous compactions to quiesce
-    "readseq,"
-    "readreverse,"
+    "overwrite,"
     "compact,"
-    "readrandom,"
-    "readseq,"
-    "readreverse,"
-    "fill100K,"
-    "crc32c,"
-    "snappycomp,"
-    "snappyuncomp,";
+    "stats,";
+
+//    "readrandom,"
+//    "readmissing,";
+
+// Bloom filter bits per key.
+// Negative means use default settings.
+static int FLAGS_bloom_bits = -1;
 
 // Number of key/values to place in database
-static int FLAGS_num = 1000000;
+static int FLAGS_num = 1024*1024*4;
 
 // Number of read operations to do.  If negative, do FLAGS_num reads.
-static int FLAGS_reads = -1;
+static int FLAGS_reads = 1024*1024*4;
 
 // Number of concurrent threads to run.
 static int FLAGS_threads = 1;
 
 // Size of each value
-static int FLAGS_value_size = 100;
+static int FLAGS_value_size = 1;
 
 // Arrange to generate values that shrink to this fraction of
 // their original size after compression
-static double FLAGS_compression_ratio = 0.5;
+static double FLAGS_compression_ratio = 0.7;
 
 // Print histogram of operation timings
 static bool FLAGS_histogram = false;
 
 // Count the number of string comparisons performed
-static bool FLAGS_comparisons = false;
+static bool FLAGS_comparisons = true;
 
 // Number of bytes to buffer in memtable before compacting
 // (initialized to default value by "main")
@@ -103,9 +99,9 @@ static int FLAGS_cache_size = -1;
 // Maximum number of files to keep open at the same time (use default if == 0)
 static int FLAGS_open_files = 0;
 
-// Bloom filter bits per key.
-// Negative means use default settings.
-static int FLAGS_bloom_bits = -1;
+//// Bloom filter bits per key.
+//// Negative means use default settings.
+//static int FLAGS_bloom_bits = 10;
 
 // Common key prefix length.
 static int FLAGS_key_prefix = 0;
@@ -122,7 +118,7 @@ static bool FLAGS_reuse_logs = false;
 static bool FLAGS_compression = true;
 
 // Use the db with the following name.
-static const char* FLAGS_db = nullptr;
+static const char* FLAGS_db = "/Users/mgajek/CLionProjects/leveldb/build/with_xor";
 
 namespace leveldb {
 
@@ -464,9 +460,7 @@ class Benchmark {
  public:
   Benchmark()
       : cache_(FLAGS_cache_size >= 0 ? NewLRUCache(FLAGS_cache_size) : nullptr),
-        filter_policy_(FLAGS_bloom_bits >= 0
-                           ? NewBloomFilterPolicy(FLAGS_bloom_bits)
-                           : nullptr),
+        filter_policy_(NewRibbonFilterPolicy()),
         db_(nullptr),
         num_(FLAGS_num),
         value_size_(FLAGS_value_size),
@@ -810,6 +804,7 @@ class Benchmark {
     for (int i = 0; i < num_; i += entries_per_batch_) {
       batch.Clear();
       for (int j = 0; j < entries_per_batch_; j++) {
+        // if seq then write number in sequence from 0 to num_ -> FLAGS_num
         const int k = seq ? i + j : thread->rand.Uniform(FLAGS_num);
         key.Set(k);
         batch.Put(key.slice(), gen.Generate(value_size_));
@@ -1030,6 +1025,7 @@ int main(int argc, char** argv) {
   FLAGS_open_files = leveldb::Options().max_open_files;
   std::string default_db_path;
 
+  // Analyze the flags passed to the binary, and modify the benchmark flags
   for (int i = 1; i < argc; i++) {
     double d;
     int n;

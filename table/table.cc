@@ -15,6 +15,9 @@
 #include "table/two_level_iterator.h"
 #include "util/coding.h"
 
+#include <chrono>
+#include <thread>
+
 namespace leveldb {
 
 struct Table::Rep {
@@ -225,6 +228,10 @@ Status Table::InternalGet(const ReadOptions& options, const Slice& k, void* arg,
         !filter->KeyMayMatch(handle.offset(), k)) {
       // Not found
     } else {
+
+//      std::chrono::microseconds  timespan(5); // or whatever
+//      std::this_thread::sleep_for(timespan);
+
       Iterator* block_iter = BlockReader(this, options, iiter->value());
       block_iter->Seek(k);
       if (block_iter->Valid()) {

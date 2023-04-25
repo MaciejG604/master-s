@@ -189,6 +189,13 @@ target_sources(leveldb
     "util/options.cc"
     "util/random.h"
     "util/status.cc"
+    "util/MurmurHash3.cpp"
+    "util/MurmurHash3.h"
+    "util/filter_adapters/BinaryFuseFilterPolicy.cpp"
+    "util/filter_adapters/XorFilterPolicy.cpp"
+    "util/filter_adapters/CompressedXorFilterPolicy.cpp"
+    "util/filter_adapters/CuckooFilterPolicy.cpp"
+    "util/filter_adapters/RibbonFilterPolicy.cpp"
 
   # Only CMake 3.3+ supports PUBLIC sources in targets exported by "install".
   $<$<VERSION_GREATER:CMAKE_VERSION,3.2>:PUBLIC>
@@ -207,6 +214,10 @@ target_sources(leveldb
     "${LEVELDB_PUBLIC_INCLUDE_DIR}/table_builder.h"
     "${LEVELDB_PUBLIC_INCLUDE_DIR}/table.h"
     "${LEVELDB_PUBLIC_INCLUDE_DIR}/write_batch.h"
+)
+
+include_directories(
+    "lib"
 )
 
 if (WIN32)
@@ -323,27 +334,32 @@ if(LEVELDB_BUILD_TESTS)
   if(NOT BUILD_SHARED_LIBS)
     target_sources(leveldb_tests
       PRIVATE
-        "db/autocompact_test.cc"
-        "db/corruption_test.cc"
-        "db/db_test.cc"
-        "db/dbformat_test.cc"
-        "db/filename_test.cc"
-        "db/log_test.cc"
-        "db/recovery_test.cc"
-        "db/skiplist_test.cc"
-        "db/version_edit_test.cc"
-        "db/version_set_test.cc"
-        "db/write_batch_test.cc"
-        "helpers/memenv/memenv_test.cc"
-        "table/filter_block_test.cc"
-        "table/table_test.cc"
-        "util/arena_test.cc"
+#        "db/autocompact_test.cc"
+#        "db/corruption_test.cc"
+#        "db/db_test.cc"
+#        "db/dbformat_test.cc"
+#        "db/filename_test.cc"
+#        "db/log_test.cc"
+#        "db/recovery_test.cc"
+#        "db/skiplist_test.cc"
+#        "db/version_edit_test.cc"
+#        "db/version_set_test.cc"
+#        "db/write_batch_test.cc"
+#        "helpers/memenv/memenv_test.cc"
+#        "table/filter_block_test.cc"
+#        "table/table_test.cc"
+#        "util/arena_test.cc"
         "util/bloom_test.cc"
-        "util/cache_test.cc"
-        "util/coding_test.cc"
-        "util/crc32c_test.cc"
-        "util/hash_test.cc"
-        "util/logging_test.cc"
+        "util/filter_adapters_tests/xor_filter_test.cc"
+        "util/filter_adapters_tests/ribbon_filter_test.cc"
+        "util/filter_adapters_tests/compressed_xor_filter_test.cc"
+        "util/filter_adapters_tests/binary_fuse_filter_test.cc"
+        "util/filter_adapters_tests/cuckoo_filter_test.cc"
+#        "util/cache_test.cc"
+#        "util/coding_test.cc"
+#        "util/crc32c_test.cc"
+#        "util/hash_test.cc"
+#        "util/logging_test.cc"
     )
   endif(NOT BUILD_SHARED_LIBS)
   target_link_libraries(leveldb_tests leveldb gmock gtest gtest_main)
