@@ -116,7 +116,7 @@ endif(BUILD_SHARED_LIBS)
 # Must be included before CMAKE_INSTALL_INCLUDEDIR is used.
 include(GNUInstallDirs)
 
-add_library(leveldb "")
+add_library(leveldb "" util/filter_adapters/BlockedBloomFilterPolicy.cpp)
 target_sources(leveldb
   PRIVATE
     "${PROJECT_BINARY_DIR}/${LEVELDB_PORT_CONFIG_DIR}/port_config.h"
@@ -191,6 +191,7 @@ target_sources(leveldb
     "util/status.cc"
     "util/MurmurHash3.cpp"
     "util/MurmurHash3.h"
+    "util/filter_adapters/BlockedBloomFilterPolicy.cpp"
     "util/filter_adapters/BinaryFuseFilterPolicy.cpp"
     "util/filter_adapters/XorFilterPolicy.cpp"
     "util/filter_adapters/CompressedXorFilterPolicy.cpp"
@@ -350,6 +351,7 @@ if(LEVELDB_BUILD_TESTS)
 #        "table/table_test.cc"
 #        "util/arena_test.cc"
         "util/bloom_test.cc"
+        "util/filter_adapters_tests/blocked_bloom_filter_test.cc"
         "util/filter_adapters_tests/xor_filter_test.cc"
         "util/filter_adapters_tests/ribbon_filter_test.cc"
         "util/filter_adapters_tests/compressed_xor_filter_test.cc"

@@ -45,14 +45,14 @@
 //      sstables    -- Print sstable info
 //      heapprofile -- Dump a heap profile (if supported by this port)
 static const char* FLAGS_benchmarks =
-    "fillrandom,"
-    "overwrite,"
-    "overwrite,"
-    "compact,"
-    "stats,";
+//    "fillrandom,"
+//    "overwrite,"
+//    "overwrite,"
+//    "compact,"
+//    "stats,";
 
-//    "readrandom,"
-//    "readmissing,";
+    "readrandom,"
+    "readmissing,";
 
 // Bloom filter bits per key.
 // Negative means use default settings.
@@ -68,7 +68,7 @@ static int FLAGS_reads = 1024*1024*4;
 static int FLAGS_threads = 1;
 
 // Size of each value
-static int FLAGS_value_size = 1;
+static int FLAGS_value_size = 16;
 
 // Arrange to generate values that shrink to this fraction of
 // their original size after compression
@@ -119,6 +119,24 @@ static bool FLAGS_compression = true;
 
 // Use the db with the following name.
 static const char* FLAGS_db = "/Users/mgajek/CLionProjects/leveldb/build/with_xor";
+
+static int filter_type = 0;
+
+const leveldb::FilterPolicy* get_filter_type() {
+    switch (filter_type) {
+      case 1:
+        std::cout << "Bloom_used" << std::endl;
+        return leveldb::NewBloomFilterPolicy(FLAGS_bloom_bits);
+      case 2:
+        std::cout << "Xor_used" << std::endl;
+        return leveldb::NewXorFilterPolicy();
+      case 3:
+        std::cout << "Ribbon_used" << std::endl;
+        return leveldb::NewRibbonFilterPolicy();
+      default:
+        return nullptr;
+    }
+}
 
 namespace leveldb {
 
@@ -460,7 +478,7 @@ class Benchmark {
  public:
   Benchmark()
       : cache_(FLAGS_cache_size >= 0 ? NewLRUCache(FLAGS_cache_size) : nullptr),
-        filter_policy_(NewRibbonFilterPolicy()),
+        filter_policy_(get_filter_type()),
         db_(nullptr),
         num_(FLAGS_num),
         value_size_(FLAGS_value_size),
@@ -1032,6 +1050,16 @@ int main(int argc, char** argv) {
     char junk;
     if (leveldb::Slice(argv[i]).starts_with("--benchmarks=")) {
       FLAGS_benchmarks = argv[i] + strlen("--benchmarks=");
+    } else if (leveldb::Slice(argv[i]).starts_with("--filter_type=")) {
+      auto filter_name = argv[i] + strlen("--filter_type=");
+
+      if (strcmp(filter_name, "bloom") == 0)
+        filter_type = 1;
+      else if (strcmp(filter_name, "xor") == 0)
+        filter_type = 2;
+      else if (strcmp(filter_name, "ribbon") == 0)
+        filter_type = 3;
+
     } else if (sscanf(argv[i], "--compression_ratio=%lf%c", &d, &junk) == 1) {
       FLAGS_compression_ratio = d;
     } else if (sscanf(argv[i], "--histogram=%d%c", &n, &junk) == 1 &&

@@ -9,3 +9,6 @@ cmake -DCMAKE_BUILD_TYPE=Release .. > /dev/null && cmake --build . > /dev/null&&
 ./db_bench > with_bloom.txt
 echo "With bloom DONE"
 echo "run diff no_bloom.txt with_bloom.txt"
+
+# ./db_bench --benchmarks=fillrandom,overwrite,overwrite,compact,stats --filter_type=2 --use_existing_db=0 --db=/Users/mgajek/CLionProjects/leveldb/build/with_xor
+# ./db_bench --benchmarks=readrandom,readmissing --filter_type=xor --use_existing_db=1 --db=/Users/mgajek/CLionProjects/leveldb/build/with_xor > xor.txt

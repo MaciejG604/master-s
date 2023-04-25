@@ -17,11 +17,11 @@ static Slice Key(int i, char* buffer) {
   return Slice(buffer, sizeof(uint32_t));
 }
 
-class RibbonFilterTest : public testing::Test {
+class BlockedBloomFilterTest : public testing::Test {
  public:
-  RibbonFilterTest(): policy_(NewRibbonFilterPolicy()) {}
+  BlockedBloomFilterTest(): policy_(NewBlockedBloomFilterPolicy(10)) {}
 
-  ~RibbonFilterTest() { delete policy_; }
+  ~BlockedBloomFilterTest() { delete policy_; }
 
   void Reset() {
     keys_.clear();
@@ -79,12 +79,12 @@ class RibbonFilterTest : public testing::Test {
   std::vector<std::string> keys_;
 };
 
-TEST_F(RibbonFilterTest, EmptyFilter) {
+TEST_F(BlockedBloomFilterTest, EmptyFilter) {
   ASSERT_TRUE(!Matches("hello"));
   ASSERT_TRUE(!Matches("world"));
 }
 
-TEST_F(RibbonFilterTest, Small) {
+TEST_F(BlockedBloomFilterTest, Small) {
   Add("hello");
   Add("world");
   ASSERT_TRUE(Matches("hello"));
@@ -106,7 +106,7 @@ static int NextLength(int length) {
   return length;
 }
 
-TEST_F(RibbonFilterTest, VaryingLengths) {
+TEST_F(BlockedBloomFilterTest, VaryingLengths) {
   char buffer[sizeof(int)];
 
   // Count number of filters that significantly exceed the false positive rate

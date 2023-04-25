@@ -71,7 +71,7 @@ LEVELDB_EXPORT const FilterPolicy* NewBinaryFuseFilterPolicy();
 LEVELDB_EXPORT const FilterPolicy* NewCuckooFilterPolicy();
 LEVELDB_EXPORT const FilterPolicy* NewCompressedXorFilterPolicy(size_t bits_per_key);
 LEVELDB_EXPORT const FilterPolicy* NewRibbonFilterPolicy();
-
+LEVELDB_EXPORT const FilterPolicy* NewBlockedBloomFilterPolicy(int bits_per_key);
 }  // namespace leveldb
 
 #endif  // STORAGE_LEVELDB_INCLUDE_FILTER_POLICY_H_
