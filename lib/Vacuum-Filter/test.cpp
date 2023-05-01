@@ -1,4 +1,4 @@
-#include <bits/stdc++.h>
+//#include <bits/stdc++.h>
 #include <time.h>
 #include <unistd.h>
 #include <chrono>
@@ -97,13 +97,13 @@ void test_vf_with_padding() {
     random_gen(n, insKey, rd);
     random_gen(q, alienKey, rd);
 
-    cuckoofilter::VacuumFilter<size_t, 16> vf(n);
+    modifiedcuckoofilter::VacuumFilter<size_t, 16> vf(n);
 
     // If you want to enable semi-sorting to save memory and allow some loss on throughput, use
-    // cuckoofilter::VacuumFilter<size_t, 17, cuckoofilter::PackedTable> vf(n);
+    // modifiedcuckoofilter::VacuumFilter<size_t, 17, modifiedcuckoofilter::PackedTable> vf(n);
 
     for (int i = 0; i < n; i++)
-        if (vf.Add(insKey[i]) != cuckoofilter::Ok) {
+        if (vf.Add(insKey[i]) != modifiedcuckoofilter::Ok) {
             cout << "Load factor = " << vf.LoadFactor() << endl;
             cout << "Insertion fails when inserting " << i << "th key: " << insKey[i] << endl;
         }
@@ -111,20 +111,20 @@ void test_vf_with_padding() {
     cout << "Load factor = " << vf.LoadFactor() << endl;
 
     for (int i = 0; i < n; i++)
-        if (vf.Contain(insKey[i]) != cuckoofilter::Ok)
+        if (vf.Contain(insKey[i]) != modifiedcuckoofilter::Ok)
             cout << "False negative happens at " << i << "th key: " << insKey[i] << endl;
     
     int false_positive_cnt = 0;
 
     for (int i = 0; i < q; i++)
-        if (vf.Contain(alienKey[i]) == cuckoofilter::Ok)
+        if (vf.Contain(alienKey[i]) == modifiedcuckoofilter::Ok)
             false_positive_cnt++;
 
     cout << "False positive rate = " << double(false_positive_cnt) / q << endl;
     cout << "Bits per key = " << vf.BitsPerItem() << endl;
 
     for (int i = 0; i < n; i++)
-        if (vf.Delete(insKey[i]) != cuckoofilter::Ok)
+        if (vf.Delete(insKey[i]) != modifiedcuckoofilter::Ok)
             cout << "Deletion fails when inserting " << i << "th key: " << insKey[i] << endl;
 
     cout << endl;
@@ -154,10 +154,10 @@ void test_batch() {
     random_gen_1(n, &insKey, rd);
     random_gen_1(q, &alienKey, rd);
 
-    cuckoofilter::VacuumFilter<size_t, 16> vf(n);
+    modifiedcuckoofilter::VacuumFilter<uint64_t, 16> vf(n);
 
     // If you want to enable semi-sorting to save memory and allow some loss on throughput, use
-    // cuckoofilter::VacuumFilter<size_t, 17, cuckoofilter::PackedTable> vf(n);
+    // modifiedcuckoofilter::VacuumFilter<size_t, 17, modifiedcuckoofilter::PackedTable> vf(n);
 
     vf.Add_many(insKey, res, n);
     for (int i = 0; i < n; i++)

@@ -9,11 +9,11 @@
 #include "debug.h"
 #include "printutil.h"
 
-namespace cuckoofilter {
+namespace modifiedcuckoofilter {
 
 // the most naive table implementation: one huge bit array
 template <size_t bits_per_tag>
-class SingleTable {
+struct SingleTable {
   static const size_t kTagsPerBucket = 4;
   static const size_t kBytesPerBucket =
       (bits_per_tag * kTagsPerBucket + 7) >> 3;
@@ -226,5 +226,5 @@ class SingleTable {
     return num;
   }
 };
-}  // namespace cuckoofilter
+}  // namespace modifiedcuckoofilter
 #endif  // CUCKOO_FILTER_SINGLE_TABLE_H_

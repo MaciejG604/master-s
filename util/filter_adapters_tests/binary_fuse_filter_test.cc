@@ -19,7 +19,7 @@ static Slice Key(int i, char* buffer) {
 
 class BinaryFuseFilterTest : public testing::Test {
  public:
-  BinaryFuseFilterTest(): policy_(NewBinaryFuseFilterPolicy()) {}
+  BinaryFuseFilterTest(): policy_(NewBinaryFuseFilterPolicy(16)) {}
 
   ~BinaryFuseFilterTest() { delete policy_; }
 
@@ -113,7 +113,7 @@ TEST_F(BinaryFuseFilterTest, VaryingLengths) {
   int mediocre_filters = 0;
   int good_filters = 0;
 
-  for (int length = 1; length <= 10000; length = NextLength(length)) {
+  for (int length = 1; length <= 100000; length = NextLength(length)) {
     Reset();
     for (int i = 0; i < length; i++) {
       Add(Key(i, buffer));

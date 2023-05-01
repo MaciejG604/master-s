@@ -10,6 +10,7 @@
 
 namespace leveldb {
 
+template <typename binary_fuseN_s>
 class BinaryFuseFilterPolicy : public FilterPolicy {
  public:
 
@@ -28,17 +29,20 @@ class BinaryFuseFilterPolicy : public FilterPolicy {
     auto* hashed_keys = new uint64_t[n];
     std::transform(keys, &keys[n], hashed_keys, [](const Slice& x){return keyHash(x);});
 
-    auto filter = binary_fuse8_t {};
-    binary_fuse8_allocate(n, &filter);
-    binary_fuse8_populate(hashed_keys, n, &filter);
+    auto filter = binary_fuseN_s {};
 
-    const size_t fingerprints_bytes = filter.ArrayLength;
+    allocate(n, &filter);
+    populate(hashed_keys, n, &filter);
+
+    size_t fingerprints_bytes = sizeof(uint8_t) * filter.ArrayLength;;
+    if (std::is_same<binary_fuseN_s, binary_fuse16_s>::value)
+        fingerprints_bytes *= 2;
 
     const size_t init_size = dst->size();
-    const size_t additional_size = sizeof(binary_fuse8_t) + fingerprints_bytes;
+    const size_t additional_size = sizeof(binary_fuseN_s) + fingerprints_bytes;
     dst->resize(init_size + additional_size, 0);
 
-    auto filter_persist_ptr = (binary_fuse8_t*) &(*dst)[init_size];
+    auto filter_persist_ptr = (binary_fuseN_s*) &(*dst)[init_size];
     auto fingerprints_ptr = (uint8_t*) &(filter_persist_ptr[1]);
 
     // save the filter and then the fingerprints
@@ -46,25 +50,97 @@ class BinaryFuseFilterPolicy : public FilterPolicy {
     std::memcpy(fingerprints_ptr, filter.Fingerprints, fingerprints_bytes);
 
     delete[] hashed_keys;
-    binary_fuse8_free(&filter);
+    free(&filter);
   }
 
   bool KeyMayMatch(const leveldb::Slice& key, const leveldb::Slice& filter) const override {
     if (filter.size() <= 0)
       return false;
 
-    auto filter_persist_pointer = (binary_fuse8_t*) filter.data();
+    auto filter_persist_pointer = (binary_fuseN_s*) filter.data();
     auto bf_filter = filter_persist_pointer[0];
     auto fingerprints_ptr = (uint8_t*) &filter_persist_pointer[1];
 
-    bf_filter.Fingerprints = fingerprints_ptr;
-
-    return binary_fuse8_contain(keyHash(key), &bf_filter);
+    return contains(keyHash(key), &bf_filter, fingerprints_ptr);
   }
+
+  bool contains(uint64_t key, binary_fuseN_s* filter, uint8_t* fingerprints) const;
+
+  void allocate(uint32_t size, binary_fuseN_s *filter) const;
+
+  void free(binary_fuseN_s *filter) const;
+
+  void populate(const uint64_t *keys, uint32_t size, binary_fuseN_s *filter) const;
 };
 
-const FilterPolicy* NewBinaryFuseFilterPolicy() {
-  return new BinaryFuseFilterPolicy();
+template<>
+bool BinaryFuseFilterPolicy<binary_fuse8_s>::contains(
+    uint64_t key,
+    binary_fuse8_s* filter,
+    uint8_t* fingerprints_ptr) const
+{
+  filter->Fingerprints = fingerprints_ptr;
+
+  return binary_fuse8_contain(key, filter);
+}
+
+template<>
+void BinaryFuseFilterPolicy<binary_fuse8_s>::allocate(uint32_t size, binary_fuse8_s *filter) const
+{
+  binary_fuse8_allocate(size, filter);
+}
+
+template<>
+void BinaryFuseFilterPolicy<binary_fuse8_s>::free(binary_fuse8_s *filter) const
+{
+  binary_fuse8_free(filter);
+}
+
+template<>
+void BinaryFuseFilterPolicy<binary_fuse8_s>::populate(
+    const uint64_t *keys,
+    uint32_t size,
+    binary_fuse8_s *filter) const
+{
+  binary_fuse8_populate(keys, size, filter);
+}
+
+template<>
+bool BinaryFuseFilterPolicy<binary_fuse16_s>::contains(
+    uint64_t key,
+    binary_fuse16_s* filter,
+    uint8_t* fingerprints_ptr) const
+{
+  filter->Fingerprints = (uint16_t*) fingerprints_ptr;
+
+  return binary_fuse16_contain(key, filter);
+}
+
+template<>
+void BinaryFuseFilterPolicy<binary_fuse16_s>::allocate(uint32_t size, binary_fuse16_s *filter) const
+{
+  binary_fuse16_allocate(size, filter);
+}
+
+template<>
+void BinaryFuseFilterPolicy<binary_fuse16_s>::free(binary_fuse16_s *filter) const
+{
+  binary_fuse16_free(filter);
+}
+
+template<>
+void BinaryFuseFilterPolicy<binary_fuse16_s>::populate(const uint64_t *keys, uint32_t size, binary_fuse16_s *filter) const
+{
+  binary_fuse16_populate(keys, size, filter);
+}
+
+const FilterPolicy* NewBinaryFuseFilterPolicy(size_t bits_per_key) {
+  switch (bits_per_key) {
+    case 16:
+      return new BinaryFuseFilterPolicy<binary_fuse16_s>();
+    default:
+      return new BinaryFuseFilterPolicy<binary_fuse8_s>();
+  }
 }
 
 }  // namespace leveldb

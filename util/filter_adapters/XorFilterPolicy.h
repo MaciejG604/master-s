@@ -12,6 +12,7 @@
 
 namespace leveldb {
 
+template <typename xorN_s>
 class XorFilterPolicy : public FilterPolicy {
  public:
 
@@ -29,6 +30,15 @@ class XorFilterPolicy : public FilterPolicy {
   void CreateFilter(const leveldb::Slice* keys, int n, std::string* dst) const override;
 
   bool KeyMayMatch(const leveldb::Slice& key, const leveldb::Slice& filter) const override;
+
+ private:
+  bool contains(uint64_t key, xorN_s* filter, uint8_t* fingerprints) const;
+
+  void allocate(uint32_t size, xorN_s *filter) const;
+
+  void free(xorN_s *filter) const;
+
+  void populate(const uint64_t *keys, uint32_t size, xorN_s *filter) const;
 };
 
 }  // namespace leveldb

@@ -10,7 +10,7 @@
 
 #include "debug.h"
 
-namespace cuckoofilter {
+namespace modifiedcuckoofilter {
 
 class PermEncoding {
   /* unpack one 2-byte number to four 4-bit numbers */
@@ -84,5 +84,5 @@ class PermEncoding {
     }
   }
 };
-}  // namespace cuckoofilter
+}  // namespace modifiedcuckoofilter
 #endif  // CUCKOO_FILTER_PERM_ENCODING_H_

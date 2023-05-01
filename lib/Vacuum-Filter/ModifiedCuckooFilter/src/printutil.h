@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace cuckoofilter {
+namespace modifiedcuckoofilter {
 class PrintUtil {
  public:
   static std::string bytes_to_hex(const char *data, size_t len) {
@@ -27,6 +27,6 @@ class PrintUtil {
   PrintUtil();
 };  // class PrintUtil
 
-}  // namespace cuckoofilter
+}  // namespace modifiedcuckoofilter
 
 #endif  // CUCKOO_FILTER_PRINTUTIL_H_

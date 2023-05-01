@@ -3,7 +3,7 @@
 
 #include <stdio.h>  // for perror
 
-namespace cuckoofilter {
+namespace modifiedcuckoofilter {
 
 #ifndef DEBUG
 //#define DEBUG
@@ -49,6 +49,6 @@ namespace cuckoofilter {
 
 // int set_debug(char *arg);  /* Returns 0 on success, -1 on failure */
 
-}  // namespace cuckoofilter
+}  // namespace modifiedcuckoofilter
 
 #endif  // CUCKOO_FILTER_DEBUG_H_

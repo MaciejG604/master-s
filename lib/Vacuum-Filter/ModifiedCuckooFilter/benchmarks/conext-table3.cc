@@ -20,7 +20,7 @@
 
 using namespace std;
 
-using namespace cuckoofilter;
+using namespace modifiedcuckoofilter;
 
 // The number of items sampled when determining the false positive rate
 const size_t FPR_SAMPLE_SIZE = 1000 * 1000;

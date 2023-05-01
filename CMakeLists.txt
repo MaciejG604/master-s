@@ -194,9 +194,12 @@ target_sources(leveldb
     "util/filter_adapters/BlockedBloomFilterPolicy.cpp"
     "util/filter_adapters/BinaryFuseFilterPolicy.cpp"
     "util/filter_adapters/XorFilterPolicy.cpp"
+    "util/filter_adapters/XorPlusFilterPolicy.cpp"
     "util/filter_adapters/CompressedXorFilterPolicy.cpp"
     "util/filter_adapters/CuckooFilterPolicy.cpp"
     "util/filter_adapters/RibbonFilterPolicy.cpp"
+    "util/filter_adapters/VacuumFilterPolicy.cpp"
+    "util/filter_adapters/MortonFilterPolicy.cpp"
 
   # Only CMake 3.3+ supports PUBLIC sources in targets exported by "install".
   $<$<VERSION_GREATER:CMAKE_VERSION,3.2>:PUBLIC>
@@ -357,7 +360,9 @@ if(LEVELDB_BUILD_TESTS)
         "util/filter_adapters_tests/compressed_xor_filter_test.cc"
         "util/filter_adapters_tests/binary_fuse_filter_test.cc"
         "util/filter_adapters_tests/cuckoo_filter_test.cc"
-#        "util/cache_test.cc"
+        "util/filter_adapters_tests/vacuum_filter_test.cc"
+        "util/filter_adapters_tests/xor_plus_filter_test.cc"
+        "util/filter_adapters_tests/morton_filter_test.cc"
 #        "util/coding_test.cc"
 #        "util/crc32c_test.cc"
 #        "util/hash_test.cc"

@@ -21,7 +21,7 @@
 
 using namespace std;
 
-using namespace cuckoofilter;
+using namespace modifiedcuckoofilter;
 
 // The number of items sampled when determining the lookup performance
 const size_t SAMPLE_SIZE = 1000 * 1000;

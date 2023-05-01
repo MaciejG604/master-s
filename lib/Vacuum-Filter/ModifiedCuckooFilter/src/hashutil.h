@@ -7,10 +7,10 @@
 
 #include <string>
 
-#include <openssl/evp.h>
+//#include <openssl/evp.h>
 #include <random>
 
-namespace cuckoofilter {
+namespace modifiedcuckoofilter {
 
 class HashUtil {
  public:

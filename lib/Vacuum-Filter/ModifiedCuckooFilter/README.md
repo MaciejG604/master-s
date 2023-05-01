@@ -32,7 +32,7 @@ CuckooFilter<size_t, 12> filter(total_items);
 // Insert item 12 to this cuckoo filter
 filter.Add(12);
 // Check if previously inserted items are in the filter
-assert(filter.Contain(12) == cuckoofilter::Ok);
+assert(filter.Contain(12) == modifiedcuckoofilter::Ok);
 ```
 
 Repository structure

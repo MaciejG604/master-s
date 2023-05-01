@@ -27,7 +27,8 @@ class RibbonFilterPolicy : public FilterPolicy {
     return hash_value;
   }
 
-  const char* Name() const override { return "XorFilterPolicy"; }
+  const char* Name() const override { return "Ribbon"
+                                             "]06FilterPolicy"; }
 
   void CreateFilter(const leveldb::Slice* keys, int n, std::string* dst) const override {
 //    Standard128RibbonBitsBuilder builder(0.03, true);
@@ -56,7 +57,7 @@ class RibbonFilterPolicy : public FilterPolicy {
       uint8_t* filter_type_ptr = (uint8_t*) &(*dst)[init_size];
       *filter_type_ptr = 1;
 
-      fallbackPolicy_.CreateFilter(keys, n, dst);
+      fallbackPolicy_->CreateFilter(keys, n, dst);
     } else {
       BalancedRibbonFilter<uint64_t, 8, 0> filter(n);
 
@@ -103,7 +104,7 @@ class RibbonFilterPolicy : public FilterPolicy {
     uint8_t filter_type = *filter_type_ptr;
 
     if (filter_type == 1) {
-      return fallbackPolicy_.KeyMayMatch(key, leveldb::Slice(&(filter.data()[1]), filter.size()-1));
+      return fallbackPolicy_->KeyMayMatch(key, leveldb::Slice(&(filter.data()[1]), filter.size()-1));
     }
 
     using SolnT = BalancedRibbonFilter<uint64_t, 8, 0>::InterleavedSoln;
@@ -139,7 +140,7 @@ class RibbonFilterPolicy : public FilterPolicy {
     return res;
   }
 
-  XorFilterPolicy fallbackPolicy_ = XorFilterPolicy();
+  const FilterPolicy* fallbackPolicy_ = NewXorFilterPolicy(8);
 };
 
 const FilterPolicy* NewRibbonFilterPolicy() {

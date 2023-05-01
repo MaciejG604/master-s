@@ -8,11 +8,11 @@
 #include "permencoding.h"
 #include "printutil.h"
 
-namespace cuckoofilter {
+namespace modifiedcuckoofilter {
 
 // Using Permutation encoding to save 1 bit per tag
 template <size_t bits_per_tag>
-class PackedTable {
+struct PackedTable {
   static const size_t kDirBitsPerTag = bits_per_tag - 4;
   static const size_t kBitsPerBucket = (3 + kDirBitsPerTag) * 4;
   static const size_t kBytesPerBucket = (kBitsPerBucket + 7) >> 3;
@@ -436,6 +436,6 @@ class PackedTable {
   // } // NumTagsInBucket
 
 };  // PackedTable
-}  // namespace cuckoofilter
+}  // namespace modifiedcuckoofilter
 
 #endif  // CUCKOO_FILTER_PACKED_TABLE_H_

@@ -1,7 +1,7 @@
 #ifndef CUCKOO_FILTER_BITS_H_
 #define CUCKOO_FILTER_BITS_H_
 
-namespace cuckoofilter {
+namespace modifiedcuckoofilter {
 
 // inspired from
 // http://www-graphics.stanford.edu/~seander/bithacks.html#ZeroInWord
@@ -30,6 +30,6 @@ inline uint64_t upperpower2(uint64_t x) {
   return x;
 }
 
-}  // namespace cuckoofilter
+}  // namespace modifiedcuckoofilter
 
 #endif  // CUCKOO_FILTER_BITS_H

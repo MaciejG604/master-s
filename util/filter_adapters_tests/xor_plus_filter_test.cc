@@ -17,11 +17,11 @@ static Slice Key(int i, char* buffer) {
   return Slice(buffer, sizeof(uint32_t));
 }
 
-class CuckooFilterTest : public testing::Test {
+class XorPlusFilterTest : public testing::Test {
  public:
-  CuckooFilterTest(): policy_(NewCuckooFilterPolicy(12)) {}
+  XorPlusFilterTest(): policy_(NewXorPlusFilterPolicy(8)) {}
 
-  ~CuckooFilterTest() { delete policy_; }
+  ~XorPlusFilterTest() { delete policy_; }
 
   void Reset() {
     keys_.clear();
@@ -79,20 +79,16 @@ class CuckooFilterTest : public testing::Test {
   std::vector<std::string> keys_;
 };
 
-TEST_F(CuckooFilterTest, EmptyFilter) {
+TEST_F(XorPlusFilterTest, EmptyFilter) {
   ASSERT_TRUE(!Matches("hello"));
   ASSERT_TRUE(!Matches("world"));
 }
 
-TEST_F(CuckooFilterTest, Small) {
+TEST_F(XorPlusFilterTest, Small) {
   Add("hello");
   Add("world");
-  Add("hello2");
-  Add("world2");
   ASSERT_TRUE(Matches("hello"));
   ASSERT_TRUE(Matches("world"));
-  ASSERT_TRUE(Matches("hello2"));
-  ASSERT_TRUE(Matches("world2"));
   ASSERT_TRUE(!Matches("x"));
   ASSERT_TRUE(!Matches("foo"));
 }
@@ -110,19 +106,19 @@ static int NextLength(int length) {
   return length;
 }
 
-TEST_F(CuckooFilterTest, VaryingLengths) {
+TEST_F(XorPlusFilterTest, VaryingLengths) {
   char buffer[sizeof(int)];
 
   // Count number of filters that significantly exceed the false positive rate
   int mediocre_filters = 0;
   int good_filters = 0;
 
-  for (int length = 1; length <= 10000; length = NextLength(length)) {
-    Reset();
-    for (int i = 0; i < length; i++) {
-      Add(Key(i, buffer));
-    }
-    Build();
+  for (int length = 10; length <= 100000; length = NextLength(length)) {
+      Reset();
+      for (int i = 0; i < length; i++) {
+        Add(Key(i, buffer));
+      }
+      Build();
 
 //    ASSERT_LE(FilterSize(), static_cast<size_t>((length * 10 / 8) + 40))
 //        << length;

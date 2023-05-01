@@ -17,11 +17,11 @@
 //  return Slice(buffer, sizeof(uint32_t));
 //}
 //
-//class BlockedBloomFilterTest : public testing::Test {
+//class MortonFilterTest : public testing::Test {
 // public:
-//  BlockedBloomFilterTest(): policy_(NewBlockedBloomFilterPolicy(10)) {}
+//  MortonFilterTest(): policy_(NewMortonFilterPolicy(16)) {}
 //
-//  ~BlockedBloomFilterTest() { delete policy_; }
+//  ~MortonFilterTest() { delete policy_; }
 //
 //  void Reset() {
 //    keys_.clear();
@@ -79,12 +79,12 @@
 //  std::vector<std::string> keys_;
 //};
 //
-//TEST_F(BlockedBloomFilterTest, EmptyFilter) {
+//TEST_F(MortonFilterTest, EmptyFilter) {
 //  ASSERT_TRUE(!Matches("hello"));
 //  ASSERT_TRUE(!Matches("world"));
 //}
 //
-//TEST_F(BlockedBloomFilterTest, Small) {
+//TEST_F(MortonFilterTest, Small) {
 //  Add("hello");
 //  Add("world");
 //  ASSERT_TRUE(Matches("hello"));
@@ -106,7 +106,7 @@
 //  return length;
 //}
 //
-//TEST_F(BlockedBloomFilterTest, VaryingLengths) {
+//TEST_F(MortonFilterTest, VaryingLengths) {
 //  char buffer[sizeof(int)];
 //
 //  // Count number of filters that significantly exceed the false positive rate
@@ -114,41 +114,40 @@
 //  int good_filters = 0;
 //
 //  for (int length = 1; length <= 10000; length = NextLength(length)) {
-//    Reset();
-//    for (int i = 0; i < length; i++) {
-//      Add(Key(i, buffer));
-//    }
-//    Build();
+//      Reset();
+//      for (int i = 0; i < length; i++) {
+//        Add(Key(i, buffer));
+//      }
+//      Build();
 //
-//    ASSERT_LE(FilterSize(), static_cast<size_t>((length * 10 / 8) + 40 + 1))
-//        << length;
+////    ASSERT_LE(FilterSize(), static_cast<size_t>((length * 10 / 8) + 40))
+////        << length;
 //
 //    // All added keys must match
-//    for (int i = 0; i < length; i++) {
-//      ASSERT_TRUE(Matches(Key(i, buffer)))
-//          << "Length " << length << "; key " << i;
-//    }
-//
-//    // Check false positive rate
-//    double rate = FalsePositiveRate();
-//    if (kVerbose >= 1) {
-//      std::fprintf(stderr,
-//                   "False positives: %5.2f%% @ length = %6d ; bytes = %6d\n",
-//                   rate * 100.0, length, static_cast<int>(FilterSize()));
-//    }
-//    ASSERT_LE(rate, 0.02);  // Must not be over 2%
-//    if (rate > 0.0125)
-//      mediocre_filters++;  // Allowed, but not too often
-//    else
-//      good_filters++;
+////    for (int i = 0; i < length; i++) {
+////      ASSERT_TRUE(Matches(Key(i, buffer)))
+////          << "Length " << length << "; key " << i;
+////    }
+////
+////    // Check false positive rate
+////    double rate = FalsePositiveRate();
+////    if (kVerbose >= 1) {
+////      std::fprintf(stderr,
+////                   "False positives: %5.2f%% @ length = %6d ; bytes = %6d\n",
+////                   rate * 100.0, length, static_cast<int>(FilterSize()));
+////    }
+////    ASSERT_LE(rate, 0.02);  // Must not be over 2%
+////    if (rate > 0.0125)
+////      mediocre_filters++;  // Allowed, but not too often
+////    else
+////      good_filters++;
+////  }
+////  if (kVerbose >= 1) {
+////    std::fprintf(stderr, "Filters: %d good, %d mediocre\n", good_filters,
+////                 mediocre_filters);
 //  }
-//  if (kVerbose >= 1) {
-//    std::fprintf(stderr, "Filters: %d good, %d mediocre\n", good_filters,
-//                 mediocre_filters);
-//  }
-//  ASSERT_LE(mediocre_filters, good_filters / 5);
+////  ASSERT_LE(mediocre_filters, good_filters / 5);
 //}
-//
 //
 //// Different bits-per-byte
 //

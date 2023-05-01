@@ -44,7 +44,7 @@ inline int find_the_highest_bit(int v) {
     return r;
 }
 
-namespace cuckoofilter {
+namespace modifiedcuckoofilter {
 // status returned by a cuckoo filter operation
 
 // solve equation : 1 + x(logc - logx + 1) - c = 0
@@ -98,7 +98,7 @@ const size_t kMaxCuckooCount = 500;
 template <typename ItemType, size_t bits_per_item,
           template <size_t> class TableType = SingleTable,
           typename HashFamily = TwoIndependentMultiplyShift>
-class VacuumFilter {
+struct VacuumFilter {
     // Storage of items
     TableType<bits_per_item> *table_;
 
@@ -183,12 +183,12 @@ public:
 
         victim_.used = false;
 
-        //std::cout << "num_buckets = " << num_buckets << std::endl;
-        //std::cout << "big_segment_length = " << big_seg << std::endl;
-        std::cout << "alt range setting : ";
-        for (int i = 0; i < AR; i++)
-            std::cout << len[i] + 1 << ", ";
-        std::cout << std::endl;
+//        std::cout << "num_buckets = " << num_buckets << std::endl;
+//        std::cout << "big_segment_length = " << big_seg << std::endl;
+//        std::cout << "alt range setting : ";
+//        for (int i = 0; i < AR; i++)
+//            std::cout << len[i] + 1 << ", ";
+//        std::cout << std::endl;
 
         table_ = new TableType<bits_per_item>(num_buckets);
     }
@@ -522,9 +522,9 @@ std::string VacuumFilter<ItemType, bits_per_item, TableType, HashFamily>::Info()
     }
     return ss.str();
 }
-}  // namespace cuckoofilter
+}  // namespace modifiedcuckoofilter
 
-namespace cuckoofilter {
+namespace modifiedcuckoofilter {
 // status returned by a cuckoo filter operation
 /*
 enum Status {
@@ -751,6 +751,6 @@ std::string CuckooFilter<ItemType, bits_per_item, TableType, HashFamily>::Info()
     }
     return ss.str();
 }
-}  // namespace cuckoofilter
+}  // namespace modifiedcuckoofilter
 
 #endif  // CUCKOO_FILTER_CUCKOO_FILTER_H_
