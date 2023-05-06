@@ -2,11 +2,14 @@
 // Created by Maciej Gajek on 30/03/2023.
 //
 
+#include <algorithm>
+
 #include "leveldb/filter_policy.h"
 #include "leveldb/slice.h"
 
-#include "fastfilter_cpp/src/xorfilter/binaryfusefilter_singleheader.h"
 #include "util/MurmurHash3.h"
+
+#include "fastfilter_cpp/src/xorfilter/binaryfusefilter_singleheader.h"
 
 namespace leveldb {
 

@@ -4,6 +4,8 @@
 
 #include "XorFilterPolicy.h"
 
+#include <algorithm>
+
 #include "fastfilter_cpp/src/xorfilter/xorfilter_singleheader.h"
 
 namespace leveldb {

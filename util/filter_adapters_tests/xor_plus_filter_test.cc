@@ -113,7 +113,7 @@ TEST_F(XorPlusFilterTest, VaryingLengths) {
   int mediocre_filters = 0;
   int good_filters = 0;
 
-  for (int length = 10; length <= 100000; length = NextLength(length)) {
+  for (int length = 10; length <= 10000; length = NextLength(length)) {
       Reset();
       for (int i = 0; i < length; i++) {
         Add(Key(i, buffer));

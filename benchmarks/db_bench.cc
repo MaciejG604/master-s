@@ -45,24 +45,24 @@
 //      sstables    -- Print sstable info
 //      heapprofile -- Dump a heap profile (if supported by this port)
 static const char* FLAGS_benchmarks =
-//    "fillrandom,"
-//    "overwrite,"
-//    "overwrite,"
-//    "compact,"
-//    "stats,";
+    "fillrandom,"
+    "overwrite,"
+    "overwrite,"
+    "compact,"
+    "stats,";
 
-    "readrandom,"
-    "readmissing,";
+//    "readrandom,"
+//    "readmissing,";
 
 // Bloom filter bits per key.
 // Negative means use default settings.
-static int FLAGS_bloom_bits = -1;
+static int FLAGS_filter_bits = -1;
 
 // Number of key/values to place in database
-static int FLAGS_num = 1024*1024*4;
+static int FLAGS_num = 1024*128;
 
 // Number of read operations to do.  If negative, do FLAGS_num reads.
-static int FLAGS_reads = 1024*1024*4;
+static int FLAGS_reads = 1024*128;
 
 // Number of concurrent threads to run.
 static int FLAGS_threads = 1;
@@ -101,12 +101,12 @@ static int FLAGS_open_files = 0;
 
 //// Bloom filter bits per key.
 //// Negative means use default settings.
-//static int FLAGS_bloom_bits = 10;
+//static int FLAGS_filter_bits = 10;
 
 // Common key prefix length.
 static int FLAGS_key_prefix = 0;
 
-// If true, do not destroy the existing database.  If you set this
+// If true, do not destroy the existing database. If you set this
 // flag and also specify a benchmark that wants a fresh database, that
 // benchmark will fail.
 static bool FLAGS_use_existing_db = false;
@@ -118,7 +118,7 @@ static bool FLAGS_reuse_logs = false;
 static bool FLAGS_compression = true;
 
 // Use the db with the following name.
-static const char* FLAGS_db = "/Users/mgajek/CLionProjects/leveldb/build/with_xor";
+static const char* FLAGS_db = "with_xor";
 
 static int filter_type = 0;
 
@@ -126,13 +126,28 @@ const leveldb::FilterPolicy* get_filter_type() {
     switch (filter_type) {
       case 1:
         std::cout << "Bloom_used" << std::endl;
-        return leveldb::NewBloomFilterPolicy(FLAGS_bloom_bits);
+        return leveldb::NewBloomFilterPolicy(FLAGS_filter_bits == -1 ? 8 : FLAGS_filter_bits);
       case 2:
-        std::cout << "Xor_used" << std::endl;
-        return leveldb::NewXorFilterPolicy();
+        std::cout << "Bloom_Blocked_used" << std::endl;
+        return leveldb::NewBlockedBloomFilterPolicyFixed(FLAGS_filter_bits);
       case 3:
+        std::cout << "Xor_used" << std::endl;
+        return leveldb::NewXorFilterPolicy(FLAGS_filter_bits);
+      case 4:
+        std::cout << "Xor+_used" << std::endl;
+        return leveldb::NewXorPlusFilterPolicy(FLAGS_filter_bits);
+      case 5:
+        std::cout << "BinaryFuse_used" << std::endl;
+        return leveldb::NewBinaryFuseFilterPolicy(FLAGS_filter_bits);
+      case 6:
         std::cout << "Ribbon_used" << std::endl;
         return leveldb::NewRibbonFilterPolicy();
+      case 7:
+        std::cout << "Cuckoo_used" << std::endl;
+        return leveldb::NewCuckooFilterPolicy(FLAGS_filter_bits);
+      case 8:
+        std::cout << "Vacuum_used" << std::endl;
+        return leveldb::NewVacuumFilterPolicy(FLAGS_filter_bits);
       default:
         return nullptr;
     }
@@ -1055,10 +1070,21 @@ int main(int argc, char** argv) {
 
       if (strcmp(filter_name, "bloom") == 0)
         filter_type = 1;
-      else if (strcmp(filter_name, "xor") == 0)
+      else if (strcmp(filter_name, "bloom_blocked") == 0)
         filter_type = 2;
-      else if (strcmp(filter_name, "ribbon") == 0)
+      else if (strcmp(filter_name, "xor") == 0)
         filter_type = 3;
+      else if (strcmp(filter_name, "xor+") == 0)
+        filter_type = 4;
+      else if (strcmp(filter_name, "binary_fuse") == 0)
+        filter_type = 5;
+      else if (strcmp(filter_name, "ribbon") == 0)
+        filter_type = 6;
+      else if (strcmp(filter_name, "cuckoo") == 0)
+        filter_type = 7;
+      else if (strcmp(filter_name, "vacuum") == 0)
+        filter_type = 8;
+      else filter_type = -1;
 
     } else if (sscanf(argv[i], "--compression_ratio=%lf%c", &d, &junk) == 1) {
       FLAGS_compression_ratio = d;
@@ -1095,8 +1121,8 @@ int main(int argc, char** argv) {
       FLAGS_key_prefix = n;
     } else if (sscanf(argv[i], "--cache_size=%d%c", &n, &junk) == 1) {
       FLAGS_cache_size = n;
-    } else if (sscanf(argv[i], "--bloom_bits=%d%c", &n, &junk) == 1) {
-      FLAGS_bloom_bits = n;
+    } else if (sscanf(argv[i], "--filter_bits=%d%c", &n, &junk) == 1) {
+      FLAGS_filter_bits = n;
     } else if (sscanf(argv[i], "--open_files=%d%c", &n, &junk) == 1) {
       FLAGS_open_files = n;
     } else if (strncmp(argv[i], "--db=", 5) == 0) {

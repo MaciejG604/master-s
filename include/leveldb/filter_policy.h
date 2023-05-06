@@ -73,7 +73,8 @@ LEVELDB_EXPORT const FilterPolicy* NewBinaryFuseFilterPolicy(size_t bits_per_key
 
 LEVELDB_EXPORT const FilterPolicy* NewCompressedXorFilterPolicy(size_t bits_per_key);
 LEVELDB_EXPORT const FilterPolicy* NewRibbonFilterPolicy();
-LEVELDB_EXPORT const FilterPolicy* NewBlockedBloomFilterPolicy(int bits_per_key);
+LEVELDB_EXPORT const FilterPolicy* NewBlockedBloomFilterPolicy(size_t bits_per_key);
+LEVELDB_EXPORT const FilterPolicy* NewBlockedBloomFilterPolicyFixed(size_t bits_per_key);
 
 LEVELDB_EXPORT const FilterPolicy* NewVacuumFilterPolicy(size_t bits_per_key, bool packed = false);
 LEVELDB_EXPORT const FilterPolicy* NewCuckooFilterPolicy(size_t bits_per_key);

@@ -10,11 +10,11 @@
 #include "leveldb/slice.h"
 
 #include "util/MurmurHash3.h"
-#include "fastfilter_cpp/src/bloom/simd-block.h"
+#include "fastfilter_cpp/src/bloom/simd-block-fixed-fpp.h"
 
 namespace leveldb {
 
-class BlockedBloomFilterPolicy : public FilterPolicy {
+class BlockedBloomFilterPolicyFixed : public FilterPolicy {
  public:
 
   static uint64_t keyHash(const leveldb::Slice& key) {
@@ -29,30 +29,27 @@ class BlockedBloomFilterPolicy : public FilterPolicy {
   const char* Name() const override { return "XorPlusFilterPolicy"; }
 
   void CreateFilter(const leveldb::Slice* keys, int n, std::string* dst) const override {
-    auto bloom_filter = SimdBlockFilter<>(ceil(log2(n)));
+    auto bloom_filter = SimdBlockFilterFixed64<45>(n);
     for (int i = 0; i < n; ++i)
       bloom_filter.Add(keyHash(keys[i]));
 
-    auto bucket_bytes = (1ull << (bloom_filter.log_num_buckets_ + bloom_filter.LOG_BUCKET_BYTE_SIZE));
+    auto bucket_bytes = sizeof(SimdBlockFilterFixed64<45>::Bucket) * bloom_filter.bucketCount;
 
     const size_t init_size = dst->size();
     const size_t additional_size =
-      sizeof(int) + // save log_num_buckets_
-      sizeof(uint32_t) + // save directory_mask_
+      sizeof(int) + // save bucketCount
       sizeof(hashing::SimpleMixSplit) + // save hasher_
       sizeof(size_t) + // save buckets_size_
       bucket_bytes;
 
     dst->resize(init_size + additional_size, 0);
 
-    auto log_num_buckets_ptr = (int*) &dst->data()[init_size];
-    auto directory_mask_ptr = (uint32_t*) (log_num_buckets_ptr + 1);
-    auto hasher_ptr = (hashing::SimpleMixSplit*) (directory_mask_ptr + 1);
+    auto bucketCount_ptr = (int*) &dst->data()[init_size];
+    auto hasher_ptr = (hashing::SimpleMixSplit*) (bucketCount_ptr + 1);
     auto buckets_size_ptr = (size_t*) (hasher_ptr + 1);
-    auto buckets_ptr = (SimdBlockFilter<>::Bucket*) (buckets_size_ptr + 1);
+    auto buckets_ptr = (SimdBlockFilterFixed64<45>::Bucket*) (buckets_size_ptr + 1);
 
-    *log_num_buckets_ptr = bloom_filter.log_num_buckets_;
-    *directory_mask_ptr = bloom_filter.directory_mask_;
+    *bucketCount_ptr = bloom_filter.bucketCount;
     *hasher_ptr = bloom_filter.hasher_;
     *buckets_size_ptr = bucket_bytes;
     std::memcpy(buckets_ptr, bloom_filter.directory_, bucket_bytes);
@@ -61,15 +58,13 @@ class BlockedBloomFilterPolicy : public FilterPolicy {
   bool KeyMayMatch(const leveldb::Slice& key, const leveldb::Slice& filter) const override {
     if (filter.empty()) return false;
 
-    auto log_num_buckets_ptr = (int*) filter.data();
-    auto directory_mask_ptr = (uint32_t*) (log_num_buckets_ptr + 1);
-    auto hasher_ptr = (hashing::SimpleMixSplit*) (directory_mask_ptr + 1);
+    auto bucketCount_ptr =  (int*) filter.data();
+    auto hasher_ptr = (hashing::SimpleMixSplit*) (bucketCount_ptr + 1);
     auto buckets_size_ptr = (size_t*) (hasher_ptr + 1);
-    auto buckets_ptr = (SimdBlockFilter<>::Bucket*) (buckets_size_ptr + 1);
+    auto buckets_ptr = (SimdBlockFilterFixed64<45>::Bucket*) (buckets_size_ptr + 1);
 
-    SimdBlockFilter<> bloom_filter(
-      *log_num_buckets_ptr,
-      *directory_mask_ptr,
+    SimdBlockFilterFixed64<45> bloom_filter(
+      *bucketCount_ptr,
       *hasher_ptr
     );
 
@@ -82,12 +77,12 @@ class BlockedBloomFilterPolicy : public FilterPolicy {
   }
 };
 
-const FilterPolicy* NewBlockedBloomFilterPolicy(size_t bits_per_key) {
+const FilterPolicy* NewBlockedBloomFilterPolicyFixed(size_t bits_per_key) {
   switch (bits_per_key) {
     case 16:
-      return new BlockedBloomFilterPolicy();
+      return new BlockedBloomFilterPolicyFixed();
     default:
-      return new BlockedBloomFilterPolicy();
+      return new BlockedBloomFilterPolicyFixed();
   }
 }
 

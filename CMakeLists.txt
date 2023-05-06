@@ -22,6 +22,8 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_EXTENSIONS OFF)
 endif(NOT CMAKE_CXX_STANDARD)
 
+add_compile_options(-march=native)
+
 if (WIN32)
   set(LEVELDB_PLATFORM_NAME LEVELDB_PLATFORM_WINDOWS)
   # TODO(cmumford): Make UNICODE configurable for Windows.
@@ -192,6 +194,7 @@ target_sources(leveldb
     "util/MurmurHash3.cpp"
     "util/MurmurHash3.h"
     "util/filter_adapters/BlockedBloomFilterPolicy.cpp"
+    "util/filter_adapters/BlockedBloomFilterPolicyFixed.cpp"
     "util/filter_adapters/BinaryFuseFilterPolicy.cpp"
     "util/filter_adapters/XorFilterPolicy.cpp"
     "util/filter_adapters/XorPlusFilterPolicy.cpp"
@@ -355,6 +358,7 @@ if(LEVELDB_BUILD_TESTS)
 #        "util/arena_test.cc"
         "util/bloom_test.cc"
         "util/filter_adapters_tests/blocked_bloom_filter_test.cc"
+        "util/filter_adapters_tests/blocked_bloom_filter_fixed_test.cc"
         "util/filter_adapters_tests/xor_filter_test.cc"
         "util/filter_adapters_tests/ribbon_filter_test.cc"
         "util/filter_adapters_tests/compressed_xor_filter_test.cc"
