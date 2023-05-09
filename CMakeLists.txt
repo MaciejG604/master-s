@@ -22,7 +22,7 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_EXTENSIONS OFF)
 endif(NOT CMAKE_CXX_STANDARD)
 
-add_compile_options(-march=native)
+#add_compile_options(-march=native)
 
 if (WIN32)
   set(LEVELDB_PLATFORM_NAME LEVELDB_PLATFORM_WINDOWS)

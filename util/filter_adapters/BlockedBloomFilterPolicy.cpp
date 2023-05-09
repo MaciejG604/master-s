@@ -2,14 +2,14 @@
 // Created by Maciej Gajek on 25/04/2023.
 //
 
+#include "leveldb/filter_policy.h"
+#include "leveldb/slice.h"
+
 #ifdef __AVX2__
 
 #include <iostream>
 #include <algorithm>
 #include <memory>
-
-#include "leveldb/filter_policy.h"
-#include "leveldb/slice.h"
 
 #include "util/MurmurHash3.h"
 #include "fastfilter_cpp/src/bloom/simd-block.h"
@@ -86,13 +86,14 @@ class BlockedBloomFilterPolicy : public FilterPolicy {
 
 #endif //__AVX2__
 
-const FilterPolicy* NewBlockedBloomFilterPolicy(size_t bits_per_key) {
+const leveldb::FilterPolicy* NewBlockedBloomFilterPolicy(size_t bits_per_key) {
 #ifdef __AVX2__
   return new BlockedBloomFilterPolicy();
 #else
   return nullptr;
 #endif //__AVX2__
-  }
 }
 
+#ifdef __AVX2__
 }  // namespace leveldb
+#endif //__AVX2__

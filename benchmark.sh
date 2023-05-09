@@ -3,8 +3,8 @@
 function run_db_bench_fill() {
   local filter="$1"
   shift
-#  ./db_bench --benchmarks=fillrandom,overwrite,overwrite,compact,stats --filter_type="$filter" --use_existing_db=0 --db=with_"$filter" "$@" > "$filter".txt
-  ./db_bench --benchmarks=fillrandom,compact,stats --filter_type="$filter" --use_existing_db=0 --db=with_"$filter" "$@" > "$filter".txt
+  ./db_bench --benchmarks=fillrandom,overwrite,overwrite,compact,stats --filter_type="$filter" --use_existing_db=0 --db=with_"$filter" "$@" > "$filter".txt
+#  ./db_bench --benchmarks=fillrandom,compact,stats --filter_type="$filter" --use_existing_db=0 --db=with_"$filter" "$@" > "$filter".txt
 
 }
 

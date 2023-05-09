@@ -2,6 +2,9 @@
 // Created by Maciej Gajek on 25/04/2023.
 //
 
+#include "leveldb/filter_policy.h"
+#include "leveldb/slice.h"
+
 #ifdef __AVX2__
 #include <algorithm>
 
@@ -78,7 +81,7 @@ class BlockedBloomFilterPolicyFixed : public FilterPolicy {
 };
 #endif //__AVX2__
 
-const FilterPolicy* NewBlockedBloomFilterPolicyFixed(size_t bits_per_key) {
+const leveldb::FilterPolicy* NewBlockedBloomFilterPolicyFixed(size_t bits_per_key) {
   switch (bits_per_key) {
 #ifdef __AVX2__
     case 40:
@@ -112,5 +115,6 @@ const FilterPolicy* NewBlockedBloomFilterPolicyFixed(size_t bits_per_key) {
   }
 }
 
+#ifdef __AVX2__
 }  // namespace leveldb
-
+#endif //__AVX2__
