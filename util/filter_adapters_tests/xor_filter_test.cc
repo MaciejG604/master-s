@@ -19,7 +19,7 @@ static Slice Key(int i, char* buffer) {
 
 class XorFilterTest : public testing::Test {
  public:
-  XorFilterTest(): policy_(NewXorFilterPolicy(16)) {}
+  XorFilterTest(): policy_(NewXorFilterPolicy(8)) {}
 
   ~XorFilterTest() { delete policy_; }
 

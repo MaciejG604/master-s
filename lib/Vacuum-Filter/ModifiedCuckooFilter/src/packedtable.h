@@ -33,6 +33,8 @@ struct PackedTable {
     memset(buckets_, 0, len_); 
   }
 
+  PackedTable(): buckets_(nullptr) {}
+
   ~PackedTable() { 
     delete[] buckets_; 
   }

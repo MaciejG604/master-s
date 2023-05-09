@@ -8,6 +8,8 @@
 #include "db/filename.h"
 #include "db/table_cache.h"
 #include "db/version_edit.h"
+#include <iostream>
+
 #include "leveldb/db.h"
 #include "leveldb/env.h"
 #include "leveldb/iterator.h"
@@ -43,6 +45,7 @@ Status BuildTable(const std::string& dbname, Env* env, const Options& options,
     s = builder->Finish();
     if (s.ok()) {
       meta->file_size = builder->FileSize();
+      std::cout << "perc. size of filter " <<(builder->FilterSize() / (double) builder->FileSize()) * 100 << std::endl;
       assert(meta->file_size > 0);
     }
     delete builder;

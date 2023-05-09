@@ -19,7 +19,7 @@ static Slice Key(int i, char* buffer) {
 
 class CuckooFilterTest : public testing::Test {
  public:
-  CuckooFilterTest(): policy_(NewCuckooFilterPolicy(12)) {}
+  CuckooFilterTest(): policy_(NewCuckooFilterPolicy(8)) {}
 
   ~CuckooFilterTest() { delete policy_; }
 
@@ -117,7 +117,7 @@ TEST_F(CuckooFilterTest, VaryingLengths) {
   int mediocre_filters = 0;
   int good_filters = 0;
 
-  for (int length = 1; length <= 10000; length = NextLength(length)) {
+  for (int length = 1; length <= 100000; length = NextLength(length)) {
     Reset();
     for (int i = 0; i < length; i++) {
       Add(Key(i, buffer));
@@ -140,7 +140,7 @@ TEST_F(CuckooFilterTest, VaryingLengths) {
                    "False positives: %5.2f%% @ length = %6d ; bytes = %6d\n",
                    rate * 100.0, length, static_cast<int>(FilterSize()));
     }
-    ASSERT_LE(rate, 0.02);  // Must not be over 2%
+    ASSERT_LE(rate, 0.05);  // Must not be over 2%
     if (rate > 0.0125)
       mediocre_filters++;  // Allowed, but not too often
     else

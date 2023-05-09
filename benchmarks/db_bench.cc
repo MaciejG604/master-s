@@ -46,23 +46,22 @@
 //      heapprofile -- Dump a heap profile (if supported by this port)
 static const char* FLAGS_benchmarks =
     "fillrandom,"
-    "overwrite,"
-    "overwrite,"
-    "compact,"
-    "stats,";
-
-//    "readrandom,"
-//    "readmissing,";
+//    "overwrite,"
+//    "overwrite,"
+//    "compact,"
+    "stats,"
+    "readrandom,"
+    "readmissing,";
 
 // Bloom filter bits per key.
 // Negative means use default settings.
-static int FLAGS_filter_bits = -1;
+static int FLAGS_filter_bits = 8;
 
 // Number of key/values to place in database
-static int FLAGS_num = 1024*128;
+static int FLAGS_num = 1024*512;
 
 // Number of read operations to do.  If negative, do FLAGS_num reads.
-static int FLAGS_reads = 1024*128;
+static int FLAGS_reads = 1024*512;
 
 // Number of concurrent threads to run.
 static int FLAGS_threads = 1;
@@ -118,14 +117,20 @@ static bool FLAGS_reuse_logs = false;
 static bool FLAGS_compression = true;
 
 // Use the db with the following name.
-static const char* FLAGS_db = "with_xor";
+static const char* FLAGS_db = nullptr;
 
-static int filter_type = 0;
+static bool FLAGS_disable_compaction = false;
+
+static int filter_type = 4;
 
 const leveldb::FilterPolicy* get_filter_type() {
     switch (filter_type) {
       case 1:
         std::cout << "Bloom_used" << std::endl;
+        if (FLAGS_filter_bits == -1) {
+          std::cout << "filter_bits must be set when using Bloom filter" << std::endl;
+          exit(1);
+        }
         return leveldb::NewBloomFilterPolicy(FLAGS_filter_bits == -1 ? 8 : FLAGS_filter_bits);
       case 2:
         std::cout << "Bloom_Blocked_used" << std::endl;
@@ -147,7 +152,10 @@ const leveldb::FilterPolicy* get_filter_type() {
         return leveldb::NewCuckooFilterPolicy(FLAGS_filter_bits);
       case 8:
         std::cout << "Vacuum_used" << std::endl;
-        return leveldb::NewVacuumFilterPolicy(FLAGS_filter_bits);
+        return leveldb::NewVacuumFilterPolicy(FLAGS_filter_bits, false);
+      case 9:
+        std::cout << "Vacuum_packed_used" << std::endl;
+        return leveldb::NewVacuumFilterPolicy(FLAGS_filter_bits, true);
       default:
         return nullptr;
     }
@@ -795,6 +803,7 @@ class Benchmark {
     options.write_buffer_size = FLAGS_write_buffer_size;
     options.max_file_size = FLAGS_max_file_size;
     options.block_size = FLAGS_block_size;
+    options.compact_enabled = !FLAGS_disable_compaction;
     if (FLAGS_comparisons) {
       options.comparator = &count_comparator_;
     }
@@ -850,6 +859,7 @@ class Benchmark {
         std::exit(1);
       }
     }
+
     thread->stats.AddBytes(bytes);
   }
 
@@ -1084,6 +1094,8 @@ int main(int argc, char** argv) {
         filter_type = 7;
       else if (strcmp(filter_name, "vacuum") == 0)
         filter_type = 8;
+      else if (strcmp(filter_name, "vacuum_packed") == 0)
+        filter_type = 9;
       else filter_type = -1;
 
     } else if (sscanf(argv[i], "--compression_ratio=%lf%c", &d, &junk) == 1) {
@@ -1127,9 +1139,12 @@ int main(int argc, char** argv) {
       FLAGS_open_files = n;
     } else if (strncmp(argv[i], "--db=", 5) == 0) {
       FLAGS_db = argv[i] + 5;
+    } else if (sscanf(argv[i], "--disable_compaction=%d%c", &n, &junk) == 1 &&
+               (n == 0 || n == 1)) {
+      FLAGS_disable_compaction = n;
     } else {
-      std::fprintf(stderr, "Invalid flag '%s'\n", argv[i]);
-      std::exit(1);
+        std::fprintf(stderr, "Invalid flag '%s'\n", argv[i]);
+        std::exit(1);
     }
   }
 

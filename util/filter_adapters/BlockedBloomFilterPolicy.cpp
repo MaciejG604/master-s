@@ -2,6 +2,8 @@
 // Created by Maciej Gajek on 25/04/2023.
 //
 
+#ifdef __AVX2__
+
 #include <iostream>
 #include <algorithm>
 #include <memory>
@@ -82,12 +84,14 @@ class BlockedBloomFilterPolicy : public FilterPolicy {
   }
 };
 
+#endif //__AVX2__
+
 const FilterPolicy* NewBlockedBloomFilterPolicy(size_t bits_per_key) {
-  switch (bits_per_key) {
-    case 16:
-      return new BlockedBloomFilterPolicy();
-    default:
-      return new BlockedBloomFilterPolicy();
+#ifdef __AVX2__
+  return new BlockedBloomFilterPolicy();
+#else
+  return nullptr;
+#endif //__AVX2__
   }
 }
 

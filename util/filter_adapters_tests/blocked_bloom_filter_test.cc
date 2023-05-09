@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
+#ifdef __AVX2__
+
 #include "gtest/gtest.h"
 #include "leveldb/filter_policy.h"
 #include "util/coding.h"
@@ -153,3 +155,5 @@ TEST_F(BlockedBloomFilterTest, VaryingLengths) {
 // Different bits-per-byte
 
 }  // namespace leveldb
+
+#endif //__AVX2__

@@ -39,18 +39,18 @@ class CuckooFilterPolicy8 : public FilterPolicy {
 
     //TODO persist only values that are needed
     const size_t additional_size = sizeof(cuckoofilter::CuckooFilter<uint64_t, BITS8_PER_KEY>) +
-                                   sizeof(cuckoofilter::SingleTable<BITS8_PER_KEY>) +
+                                   sizeof(size_t) +
                                    sizeof(cuckoofilter::SingleTable<BITS8_PER_KEY>::Bucket) * filter.table_->num_buckets_;
 
     dst->resize(init_size + additional_size, 0);
 
     auto filter_persist_ptr = (cuckoofilter::CuckooFilter<uint64_t, BITS8_PER_KEY>*) &(*dst)[init_size];
-    auto tables_persist_ptr = (cuckoofilter::SingleTable<BITS8_PER_KEY>*) &filter_persist_ptr[1];
+    auto num_buckets_ptr = (size_t*) &filter_persist_ptr[1];
     auto buckets_persist_ptr = (cuckoofilter::SingleTable<
-                                BITS8_PER_KEY>::Bucket*) &tables_persist_ptr[1];
+                                BITS8_PER_KEY>::Bucket*) &num_buckets_ptr[1];
 
     *filter_persist_ptr = filter;
-    std::memcpy(tables_persist_ptr, filter.table_, sizeof(cuckoofilter::SingleTable<BITS8_PER_KEY>));
+    *num_buckets_ptr = filter.table_->num_buckets_;
     std::memcpy(buckets_persist_ptr, filter.table_->buckets_,
                 sizeof(cuckoofilter::SingleTable<BITS8_PER_KEY>::Bucket) * filter.table_->num_buckets_);
   }
@@ -60,14 +60,23 @@ class CuckooFilterPolicy8 : public FilterPolicy {
       return false;
 
     auto cuckoo_filter_ptr = (cuckoofilter::CuckooFilter<uint64_t, BITS8_PER_KEY>*) filter.data();
-    auto tables_persist_ptr = (cuckoofilter::SingleTable<BITS8_PER_KEY>*) &cuckoo_filter_ptr[1];
+    auto num_buckets_ptr = (size_t*) &cuckoo_filter_ptr[1];
     auto buckets_persist_ptr = (cuckoofilter::SingleTable<
-                                BITS8_PER_KEY>::Bucket*) &tables_persist_ptr[1];
+                                BITS8_PER_KEY>::Bucket*) &num_buckets_ptr[1];
 
-    cuckoo_filter_ptr->table_ = tables_persist_ptr;
-    cuckoo_filter_ptr->table_->buckets_ = buckets_persist_ptr;
+    auto cuckoo_filter = *cuckoo_filter_ptr;
 
-    return cuckoo_filter_ptr->Contain(keyHash(key)) == cuckoofilter::Status::Ok;
+    cuckoo_filter.table_ = new cuckoofilter::SingleTable<BITS8_PER_KEY>();
+    cuckoo_filter.table_->num_buckets_ = *num_buckets_ptr;
+    cuckoo_filter.table_->buckets_ = buckets_persist_ptr;
+
+    auto res = cuckoo_filter.Contain(keyHash(key)) == cuckoofilter::Status::Ok;
+
+    cuckoo_filter.table_->buckets_ = nullptr;
+    delete cuckoo_filter.table_;
+    cuckoo_filter.table_ = nullptr;
+
+    return res;
   }
 
  private:
@@ -94,23 +103,23 @@ class CuckooFilterPolicy12 : public FilterPolicy {
     for (int i = 0; i < n; ++i) {
       filter.Add(keyHash(keys[i]));
     }
-
+    
     const size_t init_size = dst->size();
 
     //TODO persist only values that are needed
     const size_t additional_size = sizeof(cuckoofilter::CuckooFilter<uint64_t, BITS12_PER_KEY>) +
-                                   sizeof(cuckoofilter::SingleTable<BITS12_PER_KEY>) +
+                                   sizeof(size_t) +
                                    sizeof(cuckoofilter::SingleTable<BITS12_PER_KEY>::Bucket) * filter.table_->num_buckets_;
 
     dst->resize(init_size + additional_size, 0);
 
     auto filter_persist_ptr = (cuckoofilter::CuckooFilter<uint64_t, BITS12_PER_KEY>*) &(*dst)[init_size];
-    auto tables_persist_ptr = (cuckoofilter::SingleTable<BITS12_PER_KEY>*) &filter_persist_ptr[1];
+    auto num_buckets_ptr = (size_t*) &filter_persist_ptr[1];
     auto buckets_persist_ptr = (cuckoofilter::SingleTable<
-                                BITS12_PER_KEY>::Bucket*) &tables_persist_ptr[1];
+                                BITS12_PER_KEY>::Bucket*) &num_buckets_ptr[1];
 
     *filter_persist_ptr = filter;
-    std::memcpy(tables_persist_ptr, filter.table_, sizeof(cuckoofilter::SingleTable<BITS12_PER_KEY>));
+    *num_buckets_ptr = filter.table_->num_buckets_;
     std::memcpy(buckets_persist_ptr, filter.table_->buckets_,
                 sizeof(cuckoofilter::SingleTable<BITS12_PER_KEY>::Bucket) * filter.table_->num_buckets_);
   }
@@ -120,14 +129,23 @@ class CuckooFilterPolicy12 : public FilterPolicy {
       return false;
 
     auto cuckoo_filter_ptr = (cuckoofilter::CuckooFilter<uint64_t, BITS12_PER_KEY>*) filter.data();
-    auto tables_persist_ptr = (cuckoofilter::SingleTable<BITS12_PER_KEY>*) &cuckoo_filter_ptr[1];
+    auto num_buckets_ptr = (size_t*) &cuckoo_filter_ptr[1];
     auto buckets_persist_ptr = (cuckoofilter::SingleTable<
-                                BITS12_PER_KEY>::Bucket*) &tables_persist_ptr[1];
+                                BITS12_PER_KEY>::Bucket*) &num_buckets_ptr[1];
 
-    cuckoo_filter_ptr->table_ = tables_persist_ptr;
-    cuckoo_filter_ptr->table_->buckets_ = buckets_persist_ptr;
+    auto cuckoo_filter = *cuckoo_filter_ptr;
 
-    return cuckoo_filter_ptr->Contain(keyHash(key)) == cuckoofilter::Status::Ok;
+    cuckoo_filter.table_ = new cuckoofilter::SingleTable<BITS12_PER_KEY>();
+    cuckoo_filter.table_->num_buckets_ = *num_buckets_ptr;
+    cuckoo_filter.table_->buckets_ = buckets_persist_ptr;
+
+    auto res = cuckoo_filter.Contain(keyHash(key)) == cuckoofilter::Status::Ok;
+
+    cuckoo_filter.table_->buckets_ = nullptr;
+    delete cuckoo_filter.table_;
+    cuckoo_filter.table_ = nullptr;
+
+    return res;
   }
 
  private:
@@ -149,30 +167,30 @@ class CuckooFilterPolicy16 : public FilterPolicy {
   const char* Name() const override { return "CuckooFilterPolicy"; }
 
   void CreateFilter(const leveldb::Slice* keys, int n, std::string* dst) const override {
-  //TODO add more bits
-      auto filter = cuckoofilter::CuckooFilter<uint64_t, BITS16_PER_KEY>(n);
-      for (int i = 0; i < n; ++i) {
-        filter.Add(keyHash(keys[i]));
-      }
+    //TODO add more bits
+    auto filter = cuckoofilter::CuckooFilter<uint64_t, BITS16_PER_KEY>(n);
+    for (int i = 0; i < n; ++i) {
+      filter.Add(keyHash(keys[i]));
+    }
+    
+    const size_t init_size = dst->size();
+    
+    //TODO persist only values that are needed
+    const size_t additional_size = sizeof(cuckoofilter::CuckooFilter<uint64_t, BITS16_PER_KEY>) +
+                                   sizeof(size_t) +
+                                   sizeof(cuckoofilter::SingleTable<BITS16_PER_KEY>::Bucket) * filter.table_->num_buckets_;
 
-      const size_t init_size = dst->size();
+    dst->resize(init_size + additional_size, 0);
 
-      //TODO persist only values that are needed
-      const size_t additional_size = sizeof(cuckoofilter::CuckooFilter<uint64_t, BITS16_PER_KEY>) +
-        sizeof(cuckoofilter::SingleTable<BITS16_PER_KEY>) +
-        sizeof(cuckoofilter::SingleTable<BITS16_PER_KEY>::Bucket) * filter.table_->num_buckets_;
+    auto filter_persist_ptr = (cuckoofilter::CuckooFilter<uint64_t, BITS16_PER_KEY>*) &(*dst)[init_size];
+    auto num_buckets_ptr = (size_t*) &filter_persist_ptr[1];
+    auto buckets_persist_ptr = (cuckoofilter::SingleTable<
+                                BITS16_PER_KEY>::Bucket*) &num_buckets_ptr[1];
 
-      dst->resize(init_size + additional_size, 0);
-
-      auto filter_persist_ptr = (cuckoofilter::CuckooFilter<uint64_t, BITS16_PER_KEY>*) &(*dst)[init_size];
-      auto tables_persist_ptr = (cuckoofilter::SingleTable<BITS16_PER_KEY>*) &filter_persist_ptr[1];
-      auto buckets_persist_ptr = (cuckoofilter::SingleTable<
-              BITS16_PER_KEY>::Bucket*) &tables_persist_ptr[1];
-
-      *filter_persist_ptr = filter;
-      std::memcpy(tables_persist_ptr, filter.table_, sizeof(cuckoofilter::SingleTable<BITS16_PER_KEY>));
-      std::memcpy(buckets_persist_ptr, filter.table_->buckets_,
-                  sizeof(cuckoofilter::SingleTable<BITS16_PER_KEY>::Bucket) * filter.table_->num_buckets_);
+    *filter_persist_ptr = filter;
+    *num_buckets_ptr = filter.table_->num_buckets_;
+    std::memcpy(buckets_persist_ptr, filter.table_->buckets_,
+                sizeof(cuckoofilter::SingleTable<BITS16_PER_KEY>::Bucket) * filter.table_->num_buckets_);
   }
 
   bool KeyMayMatch(const leveldb::Slice& key, const leveldb::Slice& filter) const override {
@@ -180,14 +198,23 @@ class CuckooFilterPolicy16 : public FilterPolicy {
       return false;
 
     auto cuckoo_filter_ptr = (cuckoofilter::CuckooFilter<uint64_t, BITS16_PER_KEY>*) filter.data();
-    auto tables_persist_ptr = (cuckoofilter::SingleTable<BITS16_PER_KEY>*) &cuckoo_filter_ptr[1];
+    auto num_buckets_ptr = (size_t*) &cuckoo_filter_ptr[1];
     auto buckets_persist_ptr = (cuckoofilter::SingleTable<
-                                BITS16_PER_KEY>::Bucket*) &tables_persist_ptr[1];
+                                BITS16_PER_KEY>::Bucket*) &num_buckets_ptr[1];
 
-    cuckoo_filter_ptr->table_ = tables_persist_ptr;
-    cuckoo_filter_ptr->table_->buckets_ = buckets_persist_ptr;
+    auto cuckoo_filter = *cuckoo_filter_ptr;
 
-    return cuckoo_filter_ptr->Contain(keyHash(key)) == cuckoofilter::Status::Ok;
+    cuckoo_filter.table_ = new cuckoofilter::SingleTable<BITS16_PER_KEY>();
+    cuckoo_filter.table_->num_buckets_ = *num_buckets_ptr;
+    cuckoo_filter.table_->buckets_ = buckets_persist_ptr;
+
+    auto res = cuckoo_filter.Contain(keyHash(key)) == cuckoofilter::Status::Ok;
+
+    cuckoo_filter.table_->buckets_ = nullptr;
+    delete cuckoo_filter.table_;
+    cuckoo_filter.table_ = nullptr;
+
+    return res;
   }
 
  private:

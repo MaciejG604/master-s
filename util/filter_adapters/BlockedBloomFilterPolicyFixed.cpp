@@ -2,9 +2,8 @@
 // Created by Maciej Gajek on 25/04/2023.
 //
 
-#include <iostream>
+#ifdef __AVX2__
 #include <algorithm>
-#include <memory>
 
 #include "leveldb/filter_policy.h"
 #include "leveldb/slice.h"
@@ -14,6 +13,7 @@
 
 namespace leveldb {
 
+template <size_t buckets_div>
 class BlockedBloomFilterPolicyFixed : public FilterPolicy {
  public:
 
@@ -29,11 +29,11 @@ class BlockedBloomFilterPolicyFixed : public FilterPolicy {
   const char* Name() const override { return "XorPlusFilterPolicy"; }
 
   void CreateFilter(const leveldb::Slice* keys, int n, std::string* dst) const override {
-    auto bloom_filter = SimdBlockFilterFixed64<45>(n);
+    auto bloom_filter = SimdBlockFilterFixed64<buckets_div>(n);
     for (int i = 0; i < n; ++i)
       bloom_filter.Add(keyHash(keys[i]));
 
-    auto bucket_bytes = sizeof(SimdBlockFilterFixed64<45>::Bucket) * bloom_filter.bucketCount;
+    auto bucket_bytes = sizeof(typename SimdBlockFilterFixed64<buckets_div>::Bucket) * bloom_filter.bucketCount;
 
     const size_t init_size = dst->size();
     const size_t additional_size =
@@ -47,7 +47,7 @@ class BlockedBloomFilterPolicyFixed : public FilterPolicy {
     auto bucketCount_ptr = (int*) &dst->data()[init_size];
     auto hasher_ptr = (hashing::SimpleMixSplit*) (bucketCount_ptr + 1);
     auto buckets_size_ptr = (size_t*) (hasher_ptr + 1);
-    auto buckets_ptr = (SimdBlockFilterFixed64<45>::Bucket*) (buckets_size_ptr + 1);
+    auto buckets_ptr = reinterpret_cast<typename SimdBlockFilterFixed64<buckets_div>::Bucket*> (buckets_size_ptr + 1);
 
     *bucketCount_ptr = bloom_filter.bucketCount;
     *hasher_ptr = bloom_filter.hasher_;
@@ -61,9 +61,9 @@ class BlockedBloomFilterPolicyFixed : public FilterPolicy {
     auto bucketCount_ptr =  (int*) filter.data();
     auto hasher_ptr = (hashing::SimpleMixSplit*) (bucketCount_ptr + 1);
     auto buckets_size_ptr = (size_t*) (hasher_ptr + 1);
-    auto buckets_ptr = (SimdBlockFilterFixed64<45>::Bucket*) (buckets_size_ptr + 1);
+    auto buckets_ptr = reinterpret_cast<typename SimdBlockFilterFixed64<buckets_div>::Bucket*> (buckets_size_ptr + 1);
 
-    SimdBlockFilterFixed64<45> bloom_filter(
+    SimdBlockFilterFixed64<buckets_div> bloom_filter(
       *bucketCount_ptr,
       *hasher_ptr
     );
@@ -76,14 +76,41 @@ class BlockedBloomFilterPolicyFixed : public FilterPolicy {
     return res;
   }
 };
+#endif //__AVX2__
 
 const FilterPolicy* NewBlockedBloomFilterPolicyFixed(size_t bits_per_key) {
   switch (bits_per_key) {
-    case 16:
-      return new BlockedBloomFilterPolicyFixed();
+#ifdef __AVX2__
+    case 40:
+      return new BlockedBloomFilterPolicyFixed<40>();
+    case 41:
+      return new BlockedBloomFilterPolicyFixed<41>();
+    case 42:
+      return new BlockedBloomFilterPolicyFixed<42>();
+    case 43:
+      return new BlockedBloomFilterPolicyFixed<43>();
+    case 44:
+      return new BlockedBloomFilterPolicyFixed<44>();
+    case 45:
+      return new BlockedBloomFilterPolicyFixed<45>();
+    case 46:
+      return new BlockedBloomFilterPolicyFixed<46>();
+    case 47:
+      return new BlockedBloomFilterPolicyFixed<47>();
+    case 48:
+      return new BlockedBloomFilterPolicyFixed<48>();
+    case 49:
+      return new BlockedBloomFilterPolicyFixed<49>();
+    case 50:
+      return new BlockedBloomFilterPolicyFixed<50>();
     default:
-      return new BlockedBloomFilterPolicyFixed();
+      return new BlockedBloomFilterPolicyFixed<45>();
+#else
+    default:
+      return nullptr;
+#endif //__AVX2__
   }
 }
 
 }  // namespace leveldb
+

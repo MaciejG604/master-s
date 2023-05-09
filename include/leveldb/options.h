@@ -51,6 +51,8 @@ struct LEVELDB_EXPORT Options {
   // If true, an error is raised if the database already exists.
   bool error_if_exists = false;
 
+  bool compact_enabled = true;
+
   // If true, the implementation will do aggressive checking of the
   // data it is processing and will stop early if it detects any
   // errors.  This may have unforeseen ramifications: for example, a

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
+#ifdef __AVX2__
+
 #include "gtest/gtest.h"
 #include "leveldb/filter_policy.h"
 #include "util/coding.h"
@@ -19,7 +21,7 @@ static Slice Key(int i, char* buffer) {
 
 class BlockedBloomFilterFixedTest : public testing::Test {
  public:
-  BlockedBloomFilterFixedTest(): policy_(NewBlockedBloomFilterPolicyFixed(10)) {}
+  BlockedBloomFilterFixedTest(): policy_(NewBlockedBloomFilterPolicyFixed(46)) {}
 
   ~BlockedBloomFilterFixedTest() { delete policy_; }
 
@@ -153,3 +155,5 @@ TEST_F(BlockedBloomFilterFixedTest, VaryingLengths) {
 // Different bits-per-byte
 
 }  // namespace leveldb
+
+#endif //__AVX2__

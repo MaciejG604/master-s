@@ -37,6 +37,8 @@ struct SingleTable {
     memset(buckets_, 0, kBytesPerBucket * (num_buckets_ + kPaddingBuckets));
   }
 
+  SingleTable() : num_buckets_(0) {}
+
   ~SingleTable() { 
     delete[] buckets_;
   }

@@ -46,6 +46,7 @@ struct TableBuilder::Rep {
   int64_t num_entries;
   bool closed;  // Either Finish() or Abandon() has been called.
   FilterBlockBuilder* filter_block;
+  uint64_t filter_block_size;
 
   // We do not emit the index entry for a block until we have seen the
   // first key for the next data block.  This allows us to use shorter
@@ -205,8 +206,10 @@ Status TableBuilder::Finish() {
 
   // Write filter block
   if (ok() && r->filter_block != nullptr) {
+
     WriteRawBlock(r->filter_block->Finish(), kNoCompression,
                   &filter_block_handle);
+    r->filter_block_size = filter_block_handle.size();
   }
 
   // Write metaindex block
@@ -262,4 +265,11 @@ uint64_t TableBuilder::NumEntries() const { return rep_->num_entries; }
 
 uint64_t TableBuilder::FileSize() const { return rep_->offset; }
 
+uint64_t TableBuilder::FilterSize() const {
+  if (rep_->filter_block != nullptr) {
+    return rep_->filter_block_size;
+  } else {
+    return 0;
+  }
+}
 }  // namespace leveldb
