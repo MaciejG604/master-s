@@ -28,6 +28,12 @@ class VersionSet;
 
 class DBImpl : public DB {
  public:
+  double AverageFilterSize() override {
+    return options_.filter_policy == nullptr
+               ? 0
+               : options_.filter_policy->counter_->average();
+  }
+
   DBImpl(const Options& options, const std::string& dbname);
 
   DBImpl(const DBImpl&) = delete;

@@ -46,9 +46,10 @@
 //      heapprofile -- Dump a heap profile (if supported by this port)
 static const char* FLAGS_benchmarks =
     "fillrandom,"
-//    "overwrite,"
-//    "overwrite,"
-//    "compact,"
+    "overwrite,"
+    "overwrite,"
+    "_get_avg_size_,"
+    "compact,"
     "stats,"
     "readrandom,"
     "readmissing,";
@@ -58,10 +59,10 @@ static const char* FLAGS_benchmarks =
 static int FLAGS_filter_bits = 8;
 
 // Number of key/values to place in database
-static int FLAGS_num = 1024*512;
+static int FLAGS_num = 1024*1024*8;
 
 // Number of read operations to do.  If negative, do FLAGS_num reads.
-static int FLAGS_reads = 1024*512;
+static int FLAGS_reads = 1024*1024*32;
 
 // Number of concurrent threads to run.
 static int FLAGS_threads = 1;
@@ -121,40 +122,41 @@ static const char* FLAGS_db = nullptr;
 
 static bool FLAGS_disable_compaction = false;
 
-static int filter_type = 4;
+static int filter_type = 3;
 
 const leveldb::FilterPolicy* get_filter_type() {
     switch (filter_type) {
       case 1:
-        std::cout << "Bloom_used" << std::endl;
+        std::cout << "Bloom_used with " << FLAGS_filter_bits << "bits" << std::endl;
         if (FLAGS_filter_bits == -1) {
           std::cout << "filter_bits must be set when using Bloom filter" << std::endl;
+          std::cout << "use --filter_bits" << std::endl;
           exit(1);
         }
         return leveldb::NewBloomFilterPolicy(FLAGS_filter_bits == -1 ? 8 : FLAGS_filter_bits);
       case 2:
-        std::cout << "Bloom_Blocked_used" << std::endl;
+        std::cout << "Bloom_Blocked_used" << FLAGS_filter_bits << "bits" << std::endl;
         return leveldb::NewBlockedBloomFilterPolicyFixed(FLAGS_filter_bits);
       case 3:
-        std::cout << "Xor_used" << std::endl;
+        std::cout << "Xor_used" << FLAGS_filter_bits << "bits" << std::endl;
         return leveldb::NewXorFilterPolicy(FLAGS_filter_bits);
       case 4:
-        std::cout << "Xor+_used" << std::endl;
+        std::cout << "Xor+_used" << FLAGS_filter_bits << "bits" << std::endl;
         return leveldb::NewXorPlusFilterPolicy(FLAGS_filter_bits);
       case 5:
-        std::cout << "BinaryFuse_used" << std::endl;
+        std::cout << "BinaryFuse_used" << FLAGS_filter_bits << "bits" << std::endl;
         return leveldb::NewBinaryFuseFilterPolicy(FLAGS_filter_bits);
       case 6:
-        std::cout << "Ribbon_used" << std::endl;
+        std::cout << "Ribbon_used" << FLAGS_filter_bits << "bits" << std::endl;
         return leveldb::NewRibbonFilterPolicy();
       case 7:
-        std::cout << "Cuckoo_used" << std::endl;
+        std::cout << "Cuckoo_used" << FLAGS_filter_bits << "bits" << std::endl;
         return leveldb::NewCuckooFilterPolicy(FLAGS_filter_bits);
       case 8:
-        std::cout << "Vacuum_used" << std::endl;
+        std::cout << "Vacuum_used" << FLAGS_filter_bits << "bits" << std::endl;
         return leveldb::NewVacuumFilterPolicy(FLAGS_filter_bits, false);
       case 9:
-        std::cout << "Vacuum_packed_used" << std::endl;
+        std::cout << "Vacuum_packed_used" << FLAGS_filter_bits << "bits" << std::endl;
         return leveldb::NewVacuumFilterPolicy(FLAGS_filter_bits, true);
       default:
         return nullptr;
@@ -559,6 +561,9 @@ class Benchmark {
         method = &Benchmark::OpenBench;
         num_ /= 10000;
         if (num_ < 1) num_ = 1;
+      } else if (name == Slice("_get_avg_size_")) {
+        fresh_db = false;
+        method = &Benchmark::PrintAvgSize;
       } else if (name == Slice("fillseq")) {
         fresh_db = true;
         method = &Benchmark::WriteSeq;
@@ -825,6 +830,15 @@ class Benchmark {
       Open();
       thread->stats.FinishedSingleOp();
     }
+  }
+
+  void PrintAvgSize(ThreadState* thread) {
+    char msg[100];
+    std::snprintf(msg, sizeof(msg),
+                  "average filter size: %f bytes",
+                  db_->AverageFilterSize());
+    thread->stats.AddMessage(msg);
+    thread->stats.FinishedSingleOp();
   }
 
   void WriteSeq(ThreadState* thread) { DoWrite(thread, true); }
@@ -1096,7 +1110,12 @@ int main(int argc, char** argv) {
         filter_type = 8;
       else if (strcmp(filter_name, "vacuum_packed") == 0)
         filter_type = 9;
-      else filter_type = -1;
+      else if (strcmp(filter_name, "none") == 0)
+        filter_type = -1;
+      else {
+        std::cout <<  "Unknown filter type" << filter_name << std::endl;
+        std::exit(1);
+      }
 
     } else if (sscanf(argv[i], "--compression_ratio=%lf%c", &d, &junk) == 1) {
       FLAGS_compression_ratio = d;

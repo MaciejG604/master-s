@@ -17,6 +17,8 @@
 #define STORAGE_LEVELDB_INCLUDE_FILTER_POLICY_H_
 
 #include <string>
+#include <vector>
+#include <numeric>
 
 #include "leveldb/export.h"
 
@@ -49,6 +51,23 @@ class LEVELDB_EXPORT FilterPolicy {
   // This method may return true or false if the key was not on the
   // list, but it should aim to return false with a high probability.
   virtual bool KeyMayMatch(const Slice& key, const Slice& filter) const = 0;
+
+  struct AverageFilterSizeCounter{
+    std::vector<double> sizes_ = std::vector<double>();
+
+    void add(double size) {
+      if (sizes_.size() == 0)
+        sizes_.reserve(1000);
+      if (sizes_.size() <= 1000)
+        sizes_.push_back(size);
+    }
+
+    double average() const {
+      return std::accumulate(sizes_.begin(), sizes_.end(), 0.0) / sizes_.size();
+    }
+  };
+
+  AverageFilterSizeCounter* const counter_ = new AverageFilterSizeCounter();
 };
 
 // Return a new filter policy that uses a bloom filter with approximately
@@ -71,14 +90,14 @@ LEVELDB_EXPORT const FilterPolicy* NewXorFilterPolicy(size_t bits_per_key);
 LEVELDB_EXPORT const FilterPolicy* NewXorPlusFilterPolicy(size_t bits_per_key);
 LEVELDB_EXPORT const FilterPolicy* NewBinaryFuseFilterPolicy(size_t bits_per_key);
 
-LEVELDB_EXPORT const FilterPolicy* NewCompressedXorFilterPolicy(size_t bits_per_key);
+//LEVELDB_EXPORT const FilterPolicy* NewCompressedXorFilterPolicy(size_t bits_per_key);
 LEVELDB_EXPORT const FilterPolicy* NewRibbonFilterPolicy();
 LEVELDB_EXPORT const FilterPolicy* NewBlockedBloomFilterPolicy(size_t bits_per_key);
 LEVELDB_EXPORT const FilterPolicy* NewBlockedBloomFilterPolicyFixed(size_t bits_per_key);
 
 LEVELDB_EXPORT const FilterPolicy* NewVacuumFilterPolicy(size_t bits_per_key, bool packed = false);
 LEVELDB_EXPORT const FilterPolicy* NewCuckooFilterPolicy(size_t bits_per_key);
-LEVELDB_EXPORT const FilterPolicy* NewMortonFilterPolicy(size_t bits_per_key);
+//LEVELDB_EXPORT const FilterPolicy* NewMortonFilterPolicy(size_t bits_per_key);
 }  // namespace leveldb
 
 #endif  // STORAGE_LEVELDB_INCLUDE_FILTER_POLICY_H_

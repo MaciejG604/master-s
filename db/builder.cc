@@ -45,7 +45,9 @@ Status BuildTable(const std::string& dbname, Env* env, const Options& options,
     s = builder->Finish();
     if (s.ok()) {
       meta->file_size = builder->FileSize();
-      std::cout << "perc. size of filter " <<(builder->FilterSize() / (double) builder->FileSize()) * 100 << std::endl;
+//      std::cout << "perc. size of filter " << (builder->FilterSize() / (double) builder->FileSize()) * 100 << std::endl;
+//      options.filter_policy->counter_->add((builder->FilterSize() / (double) builder->FileSize()) * 100);
+      options.filter_policy->counter_->add(builder->FilterSize());
       assert(meta->file_size > 0);
     }
     delete builder;

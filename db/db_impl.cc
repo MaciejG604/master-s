@@ -682,6 +682,10 @@ void DBImpl::BGWork(void* db) {
 
 void DBImpl::BackgroundCall() {
   if (!options_.compact_enabled) {
+    MutexLock l(&mutex_);
+    shutting_down_.load(std::memory_order_acquire);
+    background_compaction_scheduled_ = false;
+    background_work_finished_signal_.SignalAll();
     return;
   }
 
