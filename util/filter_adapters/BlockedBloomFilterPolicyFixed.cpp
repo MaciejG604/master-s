@@ -4,6 +4,7 @@
 
 #include "leveldb/filter_policy.h"
 #include "leveldb/slice.h"
+#include <iostream>
 
 #ifdef __AVX2__
 #include <algorithm>
@@ -13,9 +14,9 @@
 
 #include "util/MurmurHash3.h"
 #include "fastfilter_cpp/src/bloom/simd-block-fixed-fpp.h"
-
+#endif //__AVX2__
 namespace leveldb {
-
+#ifdef __AVX2__
 template <size_t buckets_div>
 class BlockedBloomFilterPolicyFixed : public FilterPolicy {
  public:
@@ -110,11 +111,10 @@ const leveldb::FilterPolicy* NewBlockedBloomFilterPolicyFixed(size_t bits_per_ke
       return new BlockedBloomFilterPolicyFixed<45>();
 #else
     default:
-      return nullptr;
+      std::cerr << "AVX instructions are not supported on this machine" << std::endl;
+      exit(1);
 #endif //__AVX2__
   }
 }
 
-#ifdef __AVX2__
 }  // namespace leveldb
-#endif //__AVX2__
