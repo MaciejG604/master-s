@@ -8,13 +8,24 @@ function run_db_bench_fill() {
 
   db_name="${filter_type}_${filter_bits}"
 
-  ./db_bench --benchmarks=fillrandom,overwrite,overwrite,_get_avg_size_,stats \
-   --filter_type="$filter" \
-    --filter_bits="$filter_bits" \
-   --use_existing_db=0 \
-   --db=with_"$db_name" \
-   --disable_compaction=0 \
-   "$@" >> "$db_name".txt
+  # Check if the current directory ends with "build/"
+  if [[ "$(pwd)" == */build ]]; then
+      ./db_bench --benchmarks=fillrandom,overwrite,overwrite,_get_avg_size_,stats \
+         --filter_type="$filter" \
+          --filter_bits="$filter_bits" \
+         --use_existing_db=0 \
+         --db=with_"$db_name" \
+         --disable_compaction=0 \
+         "$@" >> "$db_name".txt
+  else
+      ./build/db_bench --benchmarks=fillrandom,overwrite,overwrite,_get_avg_size_,stats \
+         --filter_type="$filter" \
+          --filter_bits="$filter_bits" \
+         --use_existing_db=0 \
+         --db=build/with_"$db_name" \
+         --disable_compaction=0 \
+         "$@" >> "build/$db_name".txt
+  fi
 }
 
 function run_db_bench_read() {
@@ -25,13 +36,23 @@ function run_db_bench_read() {
 
   db_name="${filter_type}_${filter_bits}"
 
-  ./db_bench --benchmarks=readrandom,readrandom,readrandom,readmissing \
-  --filter_type="$filter" \
-  --filter_bits="$filter_bits" \
-  --use_existing_db=1 \
-  --db=with_"$db_name" \
-  --disable_compaction=1 \
-  "$@" >> "$db_name".txt
+  if [[ "$(pwd)" == */build ]]; then
+        ./db_bench --benchmarks=readrandom,readrandom,readrandom,readmissing \
+          --filter_type="$filter" \
+          --filter_bits="$filter_bits" \
+          --use_existing_db=1 \
+          --db=with_"$db_name" \
+          --disable_compaction=1 \
+          "$@" >> "$db_name".txt
+    else
+        ./build/db_bench --benchmarks=readrandom,readrandom,readrandom,readmissing \
+          --filter_type="$filter" \
+          --filter_bits="$filter_bits" \
+          --use_existing_db=1 \
+          --db=build/with_"$db_name" \
+          --disable_compaction=1 \
+          "$@" >> "build/$db_name".txt
+    fi
 }
 
 if [ "$#" -lt 2 ]; then
@@ -45,6 +66,10 @@ shift
 shift
 
 filename="${filter_type}_${filter_bits}".txt
+
+if [[ "$(pwd)" != */build ]]; then
+  filename="build/$filename"
+fi
 
 printf "\n" > $filename
 echo "#Running with filter type: $filter_type with $filter_bits#" >> $filename

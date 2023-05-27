@@ -33,6 +33,25 @@ Dostepne filtry i ich dostepne konfiguracje podane jako
 
 Dla benchmarka bez uzycia filtra nalezy uzyc `../benchmark.sh none 0`
 
+Przykladowy test:
+```bash
+# First argument: List of filter types
+filter_list=( 'xor' 'binary_fuse' )
+
+# Second argument: List of bit numbers
+bit_list=(8 16)
+
+# Loop through each filter
+for filter in "${filter_list[@]}"; do
+    # Loop through each bit number
+    for bit in "${bit_list[@]}"; do
+        # Run the command with the current string and integer
+        ./benchmark.sh "$filter" "$bit"
+    done
+done
+
+```
+
 UWAGI:
 1) wartosci dla filtra bloom'a moga byc dowolnymi liczbami wiekszymi od 0, do pracy przeprowadzilem testy w przedziale [0, 16]
 2) wartosci dla filtra bloom_blocked moga byc w przedziale [40, 50] (nie jest to tak naprawde wartosc bitow na klucz, im mniejsza wartosc, tym filtr ma wiekszy rozmair i nizsze false positive rate)
