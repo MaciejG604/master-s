@@ -41,9 +41,9 @@ UWAGI:
 4) pomimo dzialajacych testow dla filtra xor+ benchmark się zatrzymuje, może to być spowodowane faktem, że tworzenie filtra xor
    nie zawsze konczy sie sukcesem (choc prawdopodobienstwo jest bardzo wysokie)
 
-Po zakonczeniu benchmarka w folderze build/ znajduje sie plik o nazwie `<nazwa_filtra>_<ilosc_bitow>.txt`, np. `xor_8`,
+Po zakonczeniu benchmarka w folderze build/ znajduje sie plik o nazwie `<nazwa_filtra>_<ilosc_bitow>.txt`, np. `xor_8.txt`,
 w tych plikach znajduja sie logi z wartosciami z testu.
-Aby je przeanalizować stworzyłem notebook'a `thesis.ipynb`, nalezy w nim zmienic relatywna sciezka pod zmienna `relative =`.
+Aby je przeanalizować stworzyłem notebook'a `thesis.ipynb`, nalezy w nim zmienic relatywna sciezke pod zmienna `relative =`.
 
 ---
 
