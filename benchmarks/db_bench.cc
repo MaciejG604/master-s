@@ -62,7 +62,7 @@ static int FLAGS_filter_bits = 8;
 static int FLAGS_num = 1024*1024*8;
 
 // Number of read operations to do.  If negative, do FLAGS_num reads.
-static int FLAGS_reads = 1024*1024*32;
+static int FLAGS_reads = -1;
 
 // Number of concurrent threads to run.
 static int FLAGS_threads = 1;

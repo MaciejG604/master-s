@@ -1,3 +1,52 @@
+# Praca magisterska Maciej Gajek
+
+Zbudowanie projektu:
+1.
+```bash
+unzip -d lib/ -o lib/Archive.zip
+```
+
+2.
+```bash
+mkdir -p build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build .
+```
+
+Odpalenie benchmark'a dla danego filtra:
+```bash
+../benchmark.sh <nazwa_filtra> <ilosc_bitow_na_jeden_klucz> [--num=]
+```
+
+`--num` - ilosc operacji odczytu/zapisu przeprowadzona w jednej fazie benchmark'a, domyslnie 1024*1024*8
+
+Dostepne filtry i ich dostepne konfiguracje podane jako 
+<nazwa_filtra> mozliwe wartosci <ilosc_bitow_na_jeden_klucz> (*UWAGI):
+- bloom *1)
+- bloom_blocked *2)
+- xor [8|16]
+- binary_fuse [8|16]
+- ribbon 8
+- cuckoo [8|12|16]
+- vacuum [8|12|16]
+- vacuum_packed [8|12|16] *3)
+- xor+ [8|16] *4)
+
+Dla benchmarka bez uzycia filtra nalezy uzyc `../benchmark.sh none 0`
+
+UWAGI:
+1) wartosci dla filtra bloom'a moga byc dowolnymi liczbami wiekszymi od 0, do pracy przeprowadzilem testy w przedziale [0, 16]
+2) wartosci dla filtra bloom_blocked moga byc w przedziale [40, 50] (nie jest to tak naprawde wartosc bitow na klucz, im mniejsza wartosc, tym filtr ma wiekszy rozmair i nizsze false positive rate)
+   Dla filtra bloom_blocked wymagane jest wsparcie AVX2 przez procesor
+3) odczyt z filtra vacuum_packed jest bardzo wolny, testy moga trwac znacznie dluzej
+4) pomimo dzialajacych testow dla filtra xor+ benchmark się zatrzymuje, może to być spowodowane faktem, że tworzenie filtra xor
+   nie zawsze konczy sie sukcesem (choc prawdopodobienstwo jest bardzo wysokie)
+
+Po zakonczeniu benchmarka w folderze build/ znajduje sie plik o nazwie `<nazwa_filtra>_<ilosc_bitow>.txt`, np. `xor_8`,
+w tych plikach znajduja sie logi z wartosciami z testu.
+Aby je przeanalizować stworzyłem notebook'a `thesis.ipynb`, nalezy w nim zmienic relatywna sciezka pod zmienna `relative =`.
+
+---
+
 LevelDB is a fast key-value storage library written at Google that provides an ordered mapping from string keys to string values.
 
 > **This repository is receiving very limited maintenance. We will only review the following types of changes.**
