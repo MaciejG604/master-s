@@ -1,5 +1,10 @@
 # Praca magisterska Maciej Gajek
 
+Klonowanie projektu:
+```bash
+git clone --recurse-submodules https://github.com/MaciejG604/master-s.git
+```
+
 Zbudowanie projektu: <br>
 1.
 ```bash
