@@ -1,6 +1,6 @@
 # Praca magisterska Maciej Gajek
 
-Zbudowanie projektu:
+Zbudowanie projektu: <br>
 1.
 ```bash
 unzip -d lib/ -o lib/Archive.zip
